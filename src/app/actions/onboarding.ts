@@ -9,58 +9,48 @@ const schema = z.object({
   serviceArea: z.array(z.string().max(120)).max(50),
 });
 
+export type CreateOrganizationResult = { ok: true } | { ok: false; message: string };
+
 /**
  * Creates the org, makes the caller its owner, seeds settings, and sets it as
- * the active org. Ordered so a failure partway through leaves no org the user
- * cannot reach.
+ * the active org — all inside one database function, because the RLS policies
+ * on memberships and org_settings read rows this flow is in the middle of
+ * creating.
+ *
+ * Returns a result rather than throwing: Next.js replaces thrown server action
+ * messages with an opaque digest in production, so a throw here would reach the
+ * rep as React's internal error text instead of something they can act on.
  */
 export async function createOrganization(input: {
   name: string;
   trades: string[];
   serviceArea: string[];
-}) {
-  const parsed = schema.parse(input);
+}): Promise<CreateOrganizationResult> {
+  const parsed = schema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: 'Check the company name and try again.' };
+  }
 
   const supabase = await supabaseServer();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error('Not signed in.');
+  if (!user) return { ok: false, message: 'Your session expired. Sign in and try again.' };
 
-  const slug =
-    parsed.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 40) || 'company';
-
-  // Suffix keeps the slug unique without a round trip to check.
-  const uniqueSlug = `${slug}-${Math.random().toString(36).slice(2, 7)}`;
-
-  const { data: org, error: orgError } = await supabase
-    .from('organizations')
-    .insert({ name: parsed.name, slug: uniqueSlug, plan: 'free', seat_limit: 1 })
-    .select('id')
-    .single();
-
-  if (orgError || !org) throw new Error('Could not create your company.');
-
-  const { error: membershipError } = await supabase
-    .from('memberships')
-    .insert({ org_id: org.id, user_id: user.id, role: 'owner' });
-
-  if (membershipError) throw new Error('Could not add you to your company.');
-
-  await supabase.from('org_settings').insert({
-    org_id: org.id,
-    trades: parsed.trades,
-    service_area: parsed.serviceArea,
+  const { error } = await supabase.rpc('create_organization', {
+    p_name: parsed.data.name,
+    p_trades: parsed.data.trades,
+    p_service_area: parsed.data.serviceArea,
   });
 
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ active_org_id: org.id })
-    .eq('id', user.id);
+  if (error) {
+    console.error('createOrganization failed', {
+      userId: user.id,
+      code: error.code,
+      message: error.message,
+    });
+    return { ok: false, message: 'Could not create your company. Please try again.' };
+  }
 
-  if (profileError) throw new Error('Could not finish setting up your account.');
+  return { ok: true };
 }

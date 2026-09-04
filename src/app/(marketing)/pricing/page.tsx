@@ -63,7 +63,7 @@ export default async function PricingPage() {
   return (
     <div className="px-5 py-16">
       <h1 className="text-center text-4xl font-extrabold tracking-tight">{t('pricingTitle')}</h1>
-      <p className="mx-auto mt-3 max-w-xl text-center text-steel-300">
+      <p className="mx-auto mt-3 max-w-xl text-center text-ink-600">
         Every plan starts free. No card to try it.
       </p>
 
@@ -71,10 +71,10 @@ export default async function PricingPage() {
         {PLANS.map((plan) => (
           <div
             key={plan.id}
-            className={`card flex flex-col ${plan.featured ? 'border-signal-500' : ''}`}
+            className={`card flex flex-col ${plan.featured ? 'border-gold-500' : ''}`}
           >
             {plan.featured && (
-              <span className="mb-3 w-fit rounded-full bg-signal-500 px-3 py-0.5 text-xs font-bold text-steel-950">
+              <span className="mb-3 w-fit rounded-full bg-gold-500 px-3 py-0.5 text-xs font-bold text-navy-900">
                 Most popular
               </span>
             )}
@@ -82,12 +82,12 @@ export default async function PricingPage() {
             <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-4xl font-black">{plan.price}</span>
               {plan.price !== 'Custom' && (
-                <span className="text-sm text-steel-400">{t('perMonth')}</span>
+                <span className="text-sm text-ink-500">{t('perMonth')}</span>
               )}
             </div>
-            <p className="mt-3 text-sm text-steel-300">{plan.blurb}</p>
+            <p className="mt-3 text-sm text-ink-600">{plan.blurb}</p>
 
-            <ul className="mt-5 flex-1 space-y-2 text-sm text-steel-200">
+            <ul className="mt-5 flex-1 space-y-2 text-sm text-ink-800">
               {plan.features.map((feature) => (
                 <li key={feature} className="flex gap-2">
                   <span aria-hidden style={{ color: 'var(--color-go)' }}>✓</span>

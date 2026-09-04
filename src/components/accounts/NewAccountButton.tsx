@@ -82,7 +82,7 @@ export function NewAccountButton() {
           />
         </div>
 
-        {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+        {error && <p role="alert" className="text-sm text-nogo">{error}</p>}
 
         <div className="flex gap-2">
           <button type="submit" className="btn-primary flex-1" disabled={saving || !name.trim()}>

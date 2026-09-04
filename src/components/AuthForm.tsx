@@ -102,19 +102,19 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
         />
       </div>
 
-      {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-nogo">{error}</p>}
 
       <button type="submit" className="btn-primary w-full" disabled={busy}>
         {busy ? t('loading') : mode === 'signup' ? t('getStarted') : t('signIn')}
       </button>
 
-      <p className="text-center text-sm text-steel-400">
+      <p className="text-center text-sm text-ink-500">
         {mode === 'signup' ? (
-          <Link href="/login" className="font-semibold text-steel-200 hover:underline">
+          <Link href="/login" className="font-semibold text-ink-800 hover:underline">
             {t('signIn')}
           </Link>
         ) : (
-          <Link href="/signup" className="font-semibold text-steel-200 hover:underline">
+          <Link href="/signup" className="font-semibold text-ink-800 hover:underline">
             {t('getStarted')}
           </Link>
         )}

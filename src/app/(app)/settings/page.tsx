@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: 'Settings' };
 
 export default async function SettingsPage() {
   const t = await getTranslations('common');
+  const tNav = await getTranslations('nav');
   const session = await getSessionContext();
   if (!session) return null;
 
@@ -31,22 +32,29 @@ export default async function SettingsPage() {
 
   return (
     <div className="app-page app-settings-page">
-      <h1 className="text-2xl font-extrabold tracking-tight">{t('language')}</h1>
+      <header className="app-page-head">
+        <div>
+          <h1>{tNav('settings')}</h1>
+        </div>
+      </header>
 
       <section className="card mt-4">
-        <LanguageToggle />
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">{t('language')}</h2>
+        <div className="mt-3">
+          <LanguageToggle />
+        </div>
       </section>
 
       <section className="card mt-4">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">Company</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">Company</h2>
         <p className="mt-2 text-lg font-bold">{session.orgName}</p>
-        <p className="text-sm capitalize text-steel-400">
+        <p className="text-sm capitalize text-ink-500">
           {session.plan} plan · {session.role}
         </p>
       </section>
 
       <section className="card mt-4">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">This month</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">This month</h2>
         <dl className="mt-3 space-y-2 text-sm">
           <Usage
             label="Coach messages"
@@ -79,19 +87,19 @@ function Usage({ label, used, limit }: { label: string; used: number; limit: num
   return (
     <div>
       <div className="flex justify-between">
-        <dt className="text-steel-300">{label}</dt>
+        <dt className="text-ink-600">{label}</dt>
         <dd className="font-semibold">
           {used}
           {limit != null ? ` / ${limit}` : ''}
         </dd>
       </div>
       {limit != null && (
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-steel-800">
+        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-paper-200">
           <div
             className="h-full rounded-full"
             style={{
               width: `${pct}%`,
-              backgroundColor: pct > 90 ? 'var(--color-nogo)' : 'var(--color-signal-500)',
+              backgroundColor: pct > 90 ? 'var(--color-nogo)' : 'var(--color-gold-500)',
             }}
           />
         </div>

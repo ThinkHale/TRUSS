@@ -31,7 +31,7 @@ export default async function OnboardingPage() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-5 py-12">
       <Wordmark />
       <h1 className="mt-8 text-3xl font-extrabold tracking-tight">Tell us about your company</h1>
-      <p className="mt-2 text-steel-300">
+      <p className="mt-2 text-ink-600">
         This is how TRUSS Coach learns what you sell and where you sell it.
       </p>
       <OnboardingForm />

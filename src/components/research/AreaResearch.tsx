@@ -107,7 +107,7 @@ export function AreaResearch() {
         />
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-steel-400">{t('radius')}</span>
+          <span className="text-sm text-ink-500">{t('radius')}</span>
           <div className="flex gap-1.5">
             {RADIUS_OPTIONS.map((miles) => (
               <button
@@ -118,15 +118,15 @@ export function AreaResearch() {
                 className={cx(
                   'min-h-touch rounded-xl border px-3.5 text-sm font-semibold transition-colors',
                   radiusMiles === miles
-                    ? 'border-signal-500 bg-signal-500/15 text-signal-400'
-                    : 'border-steel-700 text-steel-300',
+                    ? 'border-gold-500 bg-gold-500/15 text-gold-600'
+                    : 'border-line-strong text-ink-600',
                 )}
               >
                 {miles}
               </button>
             ))}
           </div>
-          <span className="text-sm text-steel-400">{t('miles')}</span>
+          <span className="text-sm text-ink-500">{t('miles')}</span>
         </div>
 
         <button type="submit" className="btn-primary w-full" disabled={loading || !query.trim()}>
@@ -136,22 +136,22 @@ export function AreaResearch() {
 
       {error && (
         <div role="alert" className="card mt-4 border-nogo/40 bg-nogo/10">
-          <p className="text-sm text-red-200">{error}</p>
+          <p className="text-sm text-nogo">{error}</p>
         </div>
       )}
 
       {result && (
         <div className="mt-6 space-y-5">
-          <p className="text-sm font-semibold text-steel-300">
+          <p className="text-sm font-semibold text-ink-600">
             {result.location.formattedAddress}
           </p>
 
           {result.brief && (
-            <section className="card border-l-4" style={{ borderLeftColor: 'var(--color-signal-500)' }}>
-              <h2 className="text-xs font-bold uppercase tracking-widest text-signal-400">
+            <section className="card border-l-4" style={{ borderLeftColor: 'var(--color-gold-500)' }}>
+              <h2 className="text-xs font-bold uppercase tracking-widest text-gold-600">
                 {t('brief')}
               </h2>
-              <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-steel-200">
+              <div className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-800">
                 {result.brief}
               </div>
             </section>
@@ -159,14 +159,14 @@ export function AreaResearch() {
 
           {result.current && (
             <section className="card">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
                 {t('weather')}
               </h2>
               <div className="mt-2 flex items-baseline gap-3">
                 <span className="text-4xl font-black">{result.current.tempF}°</span>
-                <span className="text-steel-300">{result.current.description}</span>
+                <span className="text-ink-600">{result.current.description}</span>
               </div>
-              <p className="mt-1 text-sm text-steel-400">
+              <p className="mt-1 text-sm text-ink-500">
                 Feels {result.current.feelsLikeF}° · Wind {result.current.windMph} mph
                 {result.current.windGustMph ? ` (gusts ${result.current.windGustMph})` : ''} ·{' '}
                 {result.current.precipProbability}% precip
@@ -176,16 +176,16 @@ export function AreaResearch() {
 
           {result.workWindows.length > 0 && (
             <section className="card">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
                 {t('workWindows')}
               </h2>
               <ul className="mt-3 space-y-2.5">
                 {result.workWindows.map((day, i) => (
-                  <li key={day.date} className="border-b border-steel-800 pb-2.5 last:border-0 last:pb-0">
+                  <li key={day.date} className="border-b border-line pb-2.5 last:border-0 last:pb-0">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-sm font-semibold">
                         {formatDay(day.date)}
-                        <span className="ml-2 font-normal text-steel-400">
+                        <span className="ml-2 font-normal text-ink-500">
                           {result.forecast[i]?.highF}°/{result.forecast[i]?.lowF}°
                         </span>
                       </span>
@@ -194,7 +194,7 @@ export function AreaResearch() {
                         <RatingPill label={t('canvass')} rating={day.canvass.rating} t={t} />
                       </div>
                     </div>
-                    <p className="mt-1 text-xs text-steel-400">{day.install.reason}</p>
+                    <p className="mt-1 text-xs text-ink-500">{day.install.reason}</p>
                   </li>
                 ))}
               </ul>
@@ -203,17 +203,17 @@ export function AreaResearch() {
 
           {result.storms && (
             <section className="card">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
                 {t('storms')}
               </h2>
-              <p className="mt-2 text-sm font-semibold text-steel-100">{result.storms.summary}</p>
+              <p className="mt-2 text-sm font-semibold text-ink-900">{result.storms.summary}</p>
 
               {result.storms.alerts.length > 0 && (
                 <ul className="mt-3 space-y-1.5">
                   {result.storms.alerts.map((alert, i) => (
                     <li
                       key={i}
-                      className="rounded-lg border border-nogo/40 bg-nogo/10 px-3 py-2 text-sm text-red-100"
+                      className="rounded-lg border border-nogo/40 bg-nogo/10 px-3 py-2 text-sm text-nogo"
                     >
                       <strong>{alert.event}</strong>
                       {alert.headline ? ` — ${alert.headline}` : ''}
@@ -223,17 +223,17 @@ export function AreaResearch() {
               )}
 
               {result.storms.reports.length > 0 ? (
-                <ul className="mt-3 space-y-1 text-sm text-steel-300">
+                <ul className="mt-3 space-y-1 text-sm text-ink-600">
                   {result.storms.reports.slice(0, 10).map((report, i) => (
-                    <li key={i} className="flex justify-between gap-3 border-b border-steel-800 py-1.5 last:border-0">
+                    <li key={i} className="flex justify-between gap-3 border-b border-line py-1.5 last:border-0">
                       <span>
-                        <span className="font-semibold text-steel-200">
+                        <span className="font-semibold text-ink-800">
                           {report.type}
                           {report.magnitude ? ` ${report.magnitude}${report.unit ?? ''}` : ''}
                         </span>{' '}
                         · {report.city}, {report.state}
                       </span>
-                      <span className="shrink-0 text-steel-500">
+                      <span className="shrink-0 text-ink-400">
                         {report.occurredAt.slice(0, 10)}
                         {report.distanceMiles != null ? ` · ${report.distanceMiles}mi` : ''}
                       </span>
@@ -241,21 +241,21 @@ export function AreaResearch() {
                   ))}
                 </ul>
               ) : (
-                <p className="mt-2 text-sm text-steel-400">{t('noStorms')}</p>
+                <p className="mt-2 text-sm text-ink-500">{t('noStorms')}</p>
               )}
             </section>
           )}
 
           {result.places.length > 0 && (
             <section className="card">
-              <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+              <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
                 {t('properties')}
               </h2>
               <ul className="mt-3 space-y-2">
                 {result.places.slice(0, 20).map((place) => (
-                  <li key={place.id} className="border-b border-steel-800 pb-2 last:border-0 last:pb-0">
+                  <li key={place.id} className="border-b border-line pb-2 last:border-0 last:pb-0">
                     <p className="text-sm font-semibold">{place.name}</p>
-                    <p className="text-xs text-steel-400">{place.address}</p>
+                    <p className="text-xs text-ink-500">{place.address}</p>
                   </li>
                 ))}
               </ul>
@@ -278,7 +278,7 @@ function RatingPill({
 }) {
   return (
     <span
-      className="rounded-full px-2.5 py-0.5 text-xs font-bold text-steel-950"
+      className="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
       style={{ backgroundColor: RATING_COLOR[rating] }}
       title={`${label}: ${t(`ratings.${rating}`)}`}
     >

@@ -22,9 +22,9 @@ export default function SetupPage() {
       <Wordmark />
 
       <h1 className="mt-10 text-3xl font-extrabold tracking-tight">Finish setting up TRUSS</h1>
-      <p className="mt-3 text-steel-300">
+      <p className="mt-3 text-ink-600">
         The app is running but it is not connected to its services yet. Add these environment
-        variables, then run the migrations in <code className="rounded bg-steel-800 px-1.5 py-0.5 text-sm">supabase/migrations</code> in order.
+        variables, then run the migrations in <code className="rounded bg-paper-200 px-1.5 py-0.5 text-sm">supabase/migrations</code> in order.
       </p>
 
       <ul className="mt-8 space-y-3">
@@ -41,15 +41,15 @@ export default function SetupPage() {
               </span>
               <div>
                 <code className="text-sm font-bold">{item.key}</code>
-                <p className="text-sm text-steel-400">{item.what}</p>
+                <p className="text-sm text-ink-500">{item.what}</p>
               </div>
             </li>
           );
         })}
       </ul>
 
-      <p className="mt-8 text-sm text-steel-500">
-        Full instructions are in <code className="rounded bg-steel-800 px-1.5 py-0.5">docs/DEPLOYMENT.md</code>.
+      <p className="mt-8 text-sm text-ink-400">
+        Full instructions are in <code className="rounded bg-paper-200 px-1.5 py-0.5">docs/DEPLOYMENT.md</code>.
       </p>
     </div>
   );

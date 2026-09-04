@@ -28,20 +28,20 @@ export default async function EnterprisePage() {
   return (
     <div className="px-5 py-16">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-signal-500">
+        <p className="mb-3 text-sm font-bold uppercase tracking-[0.18em] text-gold-600">
           Enterprise
         </p>
         <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
           {t('enterpriseTitle')}
         </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-steel-300">{t('enterpriseBody')}</p>
+        <p className="mx-auto mt-5 max-w-2xl text-lg text-ink-600">{t('enterpriseBody')}</p>
       </div>
 
       <div className="mx-auto mt-12 grid max-w-4xl gap-4 md:grid-cols-2">
         {CAPABILITIES.map((item) => (
           <div key={item.title} className="card">
             <h2 className="text-lg font-bold">{item.title}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-steel-300">{item.body}</p>
+            <p className="mt-2 text-sm leading-relaxed text-ink-600">{item.body}</p>
           </div>
         ))}
       </div>
@@ -50,7 +50,7 @@ export default async function EnterprisePage() {
         <a href="mailto:enterprise@trusscoach.com" className="btn-primary w-full">
           {t('enterpriseCta')}
         </a>
-        <p className="mt-3 text-sm text-steel-500">enterprise@trusscoach.com</p>
+        <p className="mt-3 text-sm text-ink-400">enterprise@trusscoach.com</p>
       </div>
     </div>
   );

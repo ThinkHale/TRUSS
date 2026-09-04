@@ -50,10 +50,10 @@ export function AppNav({ orgName }: { orgName: string }) {
                   aria-current={active ? 'page' : undefined}
                   className={cx(
                     'flex min-h-touch flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold',
-                    active ? 'text-signal-500' : 'text-steel-400',
+                    active ? 'text-gold-600' : 'text-ink-500',
                   )}
                 >
-                  <span className={cx(item.primary && !active && 'text-steel-200')}>{item.icon}</span>
+                  <span className={cx(item.primary && !active && 'text-ink-800')}>{item.icon}</span>
                   {t(item.key)}
                 </Link>
               </li>
@@ -72,20 +72,14 @@ export function AppNav({ orgName }: { orgName: string }) {
             const active = pathname.startsWith(item.href);
             return (
               <li key={item.href}>
+                {/* Colors live in .app-sidebar-link — the navy chrome is the one
+                    place the light-first tokens deliberately do not apply. */}
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
-                  className={cx(
-                    'app-sidebar-link flex min-h-touch items-center gap-3 px-3 font-semibold transition-colors',
-                    active
-                      ? 'bg-steel-800 text-steel-50'
-                      : 'text-steel-400 hover:bg-steel-800/60 hover:text-steel-100',
-                    item.primary && 'text-base',
-                  )}
+                  className={cx('app-sidebar-link', item.primary && 'text-base')}
                 >
-                  <span className={cx(active && item.primary && 'text-signal-500')}>
-                    {item.icon}
-                  </span>
+                  <span>{item.icon}</span>
                   {t(item.key)}
                 </Link>
               </li>

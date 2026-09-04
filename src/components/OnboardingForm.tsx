@@ -37,7 +37,7 @@ export function OnboardingForm() {
     setBusy(true);
     setError(null);
     try {
-      await createOrganization({
+      const result = await createOrganization({
         name: companyName.trim(),
         trades,
         serviceArea: serviceArea
@@ -45,10 +45,19 @@ export function OnboardingForm() {
           .map((s) => s.trim())
           .filter(Boolean),
       });
+
+      if (!result.ok) {
+        setError(result.message);
+        setBusy(false);
+        return;
+      }
+
       router.push('/coach');
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not finish setup.');
+    } catch {
+      // Network or transport failure. A server-side problem comes back as a
+      // result above, so anything landing here is not worth surfacing verbatim.
+      setError('Could not reach TRUSS. Check your connection and try again.');
       setBusy(false);
     }
   }
@@ -79,8 +88,8 @@ export function OnboardingForm() {
               className={cx(
                 'min-h-touch rounded-xl border px-4 text-sm font-semibold transition-colors',
                 trades.includes(trade)
-                  ? 'border-signal-500 bg-signal-500/15 text-signal-400'
-                  : 'border-steel-700 text-steel-300',
+                  ? 'border-gold-500 bg-gold-500/15 text-gold-600'
+                  : 'border-line-strong text-ink-600',
               )}
             >
               {trade}
@@ -98,10 +107,10 @@ export function OnboardingForm() {
           onChange={(e) => setServiceArea(e.target.value)}
           placeholder="Dallas TX, Fort Worth TX"
         />
-        <p className="mt-1.5 text-xs text-steel-500">Separate places with commas.</p>
+        <p className="mt-1.5 text-xs text-ink-400">Separate places with commas.</p>
       </div>
 
-      {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+      {error && <p role="alert" className="text-sm text-nogo">{error}</p>}
 
       <button type="submit" className="btn-primary w-full" disabled={busy || !companyName.trim()}>
         {busy ? tc('loading') : tc('getStarted')}

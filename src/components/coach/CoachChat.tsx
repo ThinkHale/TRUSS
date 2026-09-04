@@ -39,8 +39,11 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Keep the newest message in view as tokens arrive.
+  // Keep the newest message in view as tokens arrive. Skipped while the
+  // conversation is empty: on a phone the empty state is taller than the
+  // scroll area, and scrolling it to the bottom cuts off its heading.
   useEffect(() => {
+    if (messages.length === 0) return;
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, streaming]);
 
@@ -130,7 +133,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Stage focus. Lets a rep drill one stage instead of asking generally. */}
-      <div className="flex gap-2 overflow-x-auto border-b border-steel-800 px-5 py-3">
+      <div className="flex gap-2 overflow-x-auto border-b border-line px-5 py-3">
         <StageChip active={stageFocus === null} onClick={() => setStageFocus(null)}>
           {t('allStages')}
         </StageChip>
@@ -161,8 +164,8 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
             ))}
 
             {citations.length > 0 && !streaming && (
-              <div className="rounded-xl border border-steel-800 bg-steel-900/60 px-4 py-3 text-xs text-steel-400">
-                <span className="font-semibold text-steel-300">{t('sources')}:</span>{' '}
+              <div className="rounded-xl border border-line bg-surface/60 px-4 py-3 text-xs text-ink-500">
+                <span className="font-semibold text-ink-600">{t('sources')}:</span>{' '}
                 {[...new Set(citations)].join(' · ')}
               </div>
             )}
@@ -171,7 +174,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
       </div>
 
       {error && (
-        <div role="alert" className="mx-5 mb-2 rounded-xl border border-nogo/40 bg-nogo/10 px-4 py-3 text-sm text-red-200">
+        <div role="alert" className="mx-5 mb-2 rounded-xl border border-nogo/40 bg-nogo/10 px-4 py-3 text-sm text-nogo">
           {error}
         </div>
       )}
@@ -181,7 +184,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
           e.preventDefault();
           void send(input);
         }}
-        className="border-t border-steel-800 bg-steel-950 px-5 py-3"
+        className="border-t border-line bg-paper px-5 py-3"
       >
         <div className="mx-auto flex max-w-2xl items-end gap-2">
           <textarea
@@ -229,7 +232,7 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
     <div className="coach-empty mx-auto max-w-2xl py-6">
       <div className="coach-empty-mark"><TrussMark size={44} /></div>
       <h2 className="text-xl font-bold">{t('emptyTitle')}</h2>
-      <p className="mt-2 text-steel-300">{t('emptyBody')}</p>
+      <p className="mt-2 text-ink-600">{t('emptyBody')}</p>
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
         {suggestions.map((key) => {
@@ -239,7 +242,7 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
               key={key}
               type="button"
               onClick={() => onPick(text)}
-              className="min-h-touch rounded-xl border border-steel-700 px-4 py-3 text-left text-sm font-medium text-steel-200 transition-colors hover:border-signal-500 hover:bg-steel-900"
+              className="min-h-touch rounded-xl border border-line-strong px-4 py-3 text-left text-sm font-medium text-ink-800 transition-colors hover:border-gold-500 hover:bg-surface"
             >
               {text}
               <span aria-hidden>›</span>
@@ -268,12 +271,12 @@ function Bubble({
         className={cx(
           'max-w-[85%] rounded-2xl px-4 py-3',
           isUser
-            ? 'bg-signal-500 text-steel-950'
-            : 'border border-steel-800 bg-steel-900 text-steel-100',
+            ? 'bg-gold-500 text-navy-900'
+            : 'border border-line bg-surface text-ink-900',
         )}
       >
         {pending ? (
-          <span className="animate-truss-pulse text-steel-400">•••</span>
+          <span className="animate-truss-pulse text-ink-500">•••</span>
         ) : (
           // Coach replies are plain prose by design, so newlines are the only
           // formatting to preserve. This also avoids rendering model output as HTML.
@@ -303,10 +306,12 @@ function StageChip({
       className={cx(
         'shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors',
         active
-          ? 'border-transparent text-steel-950'
-          : 'border-steel-700 text-steel-300 hover:border-steel-500',
+          // Stage colors are dark enough to need white; the gold "everything"
+          // pill is not, and reads better with the navy it is drawn from.
+          ? cx('border-transparent', color ? 'text-white' : 'text-navy-900')
+          : 'border-line-strong text-ink-600 hover:border-gold-500',
       )}
-      style={active ? { backgroundColor: color ?? 'var(--color-signal-500)' } : undefined}
+      style={active ? { backgroundColor: color ?? 'var(--color-gold-500)' } : undefined}
     >
       {children}
     </button>

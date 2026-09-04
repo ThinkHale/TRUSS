@@ -17,7 +17,7 @@ export function LanguageToggle() {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="flex rounded-lg border border-steel-700 p-0.5" role="group" aria-label="Language">
+    <div className="flex rounded-lg border border-line-strong p-0.5" role="group" aria-label="Language">
       {LOCALES.map((locale) => {
         const active = locale === current;
         return (
@@ -29,8 +29,8 @@ export function LanguageToggle() {
             onClick={() => startTransition(() => void setLocale(locale))}
             className={`rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
               active
-                ? 'bg-steel-700 text-steel-50'
-                : 'text-steel-400 hover:text-steel-100 disabled:opacity-50'
+                ? 'bg-paper-300 text-ink-900'
+                : 'text-ink-500 hover:text-ink-900 disabled:opacity-50'
             }`}
           >
             {LOCALE_LABELS[locale]}

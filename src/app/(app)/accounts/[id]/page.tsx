@@ -36,28 +36,28 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="app-page">
-      <Link href="/accounts" className="text-sm font-semibold text-steel-400 hover:text-steel-200">
+      <Link href="/accounts" className="text-sm font-semibold text-ink-500 hover:text-ink-800">
         ← {tc('back')}
       </Link>
 
-      <div className="mt-3 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-extrabold tracking-tight">{account.name}</h1>
-          <p className="mt-0.5 text-sm text-steel-400">
+      <header className="app-page-head mt-3">
+        <div>
+          <h1>{account.name}</h1>
+          <p>
             {[account.address, account.city, account.state].filter(Boolean).join(', ') || '—'}
           </p>
         </div>
         <span
-          className="shrink-0 rounded-full px-3 py-1 text-sm font-bold text-steel-950"
+          className="rounded-full px-3 py-1 text-sm font-bold text-white"
           style={{ backgroundColor: STAGE_COLOR[stage] }}
         >
           {stage}
         </span>
-      </div>
+      </header>
 
       {/* Where this account sits in the methodology. */}
       <section className="card mt-5">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">{t('stage')}</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">{t('stage')}</h2>
         <ol className="mt-3 flex gap-1.5">
           {STAGES.map((s) => {
             const reached = STAGES.findIndex((x) => x.id === stage) >= STAGES.findIndex((x) => x.id === s.id);
@@ -65,9 +65,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
               <li key={s.id} className="flex-1">
                 <div
                   className="h-2 rounded-full"
-                  style={{ backgroundColor: reached ? STAGE_COLOR[s.id] : 'var(--color-steel-800)' }}
+                  style={{ backgroundColor: reached ? STAGE_COLOR[s.id] : 'var(--color-paper-300)' }}
                 />
-                <span className="mt-1.5 block text-[10px] font-semibold text-steel-400">{s.name}</span>
+                <span className="mt-1.5 block text-[10px] font-semibold text-ink-500">{s.name}</span>
               </li>
             );
           })}
@@ -99,20 +99,20 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       {contacts && contacts.length > 0 && (
         <section className="card mt-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">Contacts</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">Contacts</h2>
           <ul className="mt-3 space-y-2">
             {contacts.map((contact) => (
-              <li key={contact.id} className="flex items-center justify-between gap-3 border-b border-steel-800 pb-2 last:border-0 last:pb-0">
+              <li key={contact.id} className="flex items-center justify-between gap-3 border-b border-line pb-2 last:border-0 last:pb-0">
                 <div>
                   <p className="font-semibold">
                     {contact.name}
                     {contact.is_decision_maker && (
-                      <span className="ml-2 rounded bg-signal-500 px-1.5 py-0.5 text-[10px] font-bold text-steel-950">
+                      <span className="ml-2 rounded bg-gold-500 px-1.5 py-0.5 text-[10px] font-bold text-navy-900">
                         {t('decisionMaker')}
                       </span>
                     )}
                   </p>
-                  <p className="text-sm text-steel-400">{contact.phone ?? contact.email ?? '—'}</p>
+                  <p className="text-sm text-ink-500">{contact.phone ?? contact.email ?? '—'}</p>
                 </div>
                 {contact.phone && (
                   <a href={`tel:${contact.phone}`} className="btn-ghost px-4 text-sm">
@@ -127,19 +127,19 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 
       {activities && activities.length > 0 && (
         <section className="card mt-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
             {t('lastActivity')}
           </h2>
           <ul className="mt-3 space-y-2.5">
             {activities.map((activity) => (
-              <li key={activity.id} className="border-b border-steel-800 pb-2.5 last:border-0 last:pb-0">
+              <li key={activity.id} className="border-b border-line pb-2.5 last:border-0 last:pb-0">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="font-semibold capitalize">{activity.type.replace('-', ' ')}</span>
-                  <span className="text-xs text-steel-500">
+                  <span className="text-xs text-ink-400">
                     {new Date(activity.occurred_at).toLocaleDateString()}
                   </span>
                 </div>
-                {activity.notes && <p className="mt-1 text-sm text-steel-300">{activity.notes}</p>}
+                {activity.notes && <p className="mt-1 text-sm text-ink-600">{activity.notes}</p>}
               </li>
             ))}
           </ul>
@@ -152,8 +152,8 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
 function Field({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-xs uppercase tracking-wider text-steel-500">{label}</dt>
-      <dd className="mt-0.5 font-semibold text-steel-100">{value}</dd>
+      <dt className="text-xs uppercase tracking-wider text-ink-400">{label}</dt>
+      <dd className="mt-0.5 font-semibold text-ink-900">{value}</dd>
     </div>
   );
 }

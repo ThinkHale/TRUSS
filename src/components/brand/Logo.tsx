@@ -19,7 +19,7 @@ export function TrussMark({ size = 32, className = '' }: { size?: number; classN
       {/* Top chord — the roofline. */}
       <path
         d="M2 22 L16 6 L30 22"
-        stroke="var(--color-signal-500)"
+        stroke="var(--color-gold-500)"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -47,7 +47,7 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
           TRUSS
         </div>
         {!compact && (
-          <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-steel-400">
+          <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">
             Sales intelligence for the Trades
           </div>
         )}

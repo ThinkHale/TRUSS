@@ -52,23 +52,23 @@ export function Scorecard({
   return (
     <div className="space-y-5">
       {/* Headline first. If a rep reads one thing, it is this. */}
-      <section className="card border-l-4" style={{ borderLeftColor: 'var(--color-signal-500)' }}>
-        <h2 className="text-xs font-bold uppercase tracking-widest text-signal-400">
+      <section className="card border-l-4" style={{ borderLeftColor: 'var(--color-gold-500)' }}>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gold-600">
           {t('headline')}
         </h2>
         <p className="mt-2 text-lg font-bold leading-snug">{data.headline}</p>
-        <p className="mt-3 text-sm leading-relaxed text-steel-300">{data.summary}</p>
+        <p className="mt-3 text-sm leading-relaxed text-ink-600">{data.summary}</p>
       </section>
 
       {/* The whole conversation at a glance. */}
       <section className="card">
         <div className="flex items-baseline justify-between">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
             {t('title')}
           </h2>
           <div className="text-right">
             <span className="text-3xl font-black">{data.total_score}</span>
-            <span className="text-steel-500">/{MAX_TOTAL_SCORE}</span>
+            <span className="text-ink-400">/{MAX_TOTAL_SCORE}</span>
           </div>
         </div>
 
@@ -84,7 +84,7 @@ export function Scorecard({
                 </span>
               </div>
               {/* Bar plus number, so the reading does not depend on color alone. */}
-              <div className="h-2.5 overflow-hidden rounded-full bg-steel-800">
+              <div className="h-2.5 overflow-hidden rounded-full bg-paper-200">
                 <div
                   className="h-full rounded-full transition-all"
                   style={{
@@ -97,8 +97,8 @@ export function Scorecard({
           ))}
         </ul>
 
-        <div className="mt-5 flex items-center justify-between border-t border-steel-800 pt-4">
-          <span className="text-sm text-steel-400">{t('outcome')}</span>
+        <div className="mt-5 flex items-center justify-between border-t border-line pt-4">
+          <span className="text-sm text-ink-500">{t('outcome')}</span>
           <OutcomeBadge outcome={data.outcome} />
         </div>
       </section>
@@ -118,8 +118,8 @@ export function Scorecard({
             </div>
 
             {detail.evidence && (
-              <blockquote className="mt-3 border-l-2 border-steel-700 pl-3 text-sm italic text-steel-300">
-                <span className="not-italic font-semibold text-steel-400">{t('evidence')}: </span>
+              <blockquote className="mt-3 border-l-2 border-line-strong pl-3 text-sm italic text-ink-600">
+                <span className="not-italic font-semibold text-ink-500">{t('evidence')}: </span>
                 “{detail.evidence}”
               </blockquote>
             )}
@@ -129,7 +129,7 @@ export function Scorecard({
                 <h4 className="text-xs font-bold uppercase tracking-wider text-go">
                   {t('wentWell')}
                 </h4>
-                <ul className="mt-1.5 space-y-1 text-sm text-steel-200">
+                <ul className="mt-1.5 space-y-1 text-sm text-ink-800">
                   {detail.wentWell.map((item, i) => (
                     <li key={i} className="flex gap-2">
                       <span aria-hidden style={{ color: 'var(--color-go)' }}>✓</span>
@@ -144,15 +144,15 @@ export function Scorecard({
               <h4 className="text-xs font-bold uppercase tracking-wider text-marginal">
                 {t('improve')}
               </h4>
-              <p className="mt-1.5 text-sm text-steel-200">{detail.improve}</p>
+              <p className="mt-1.5 text-sm text-ink-800">{detail.improve}</p>
             </div>
 
             {detail.betterLine && (
-              <div className="mt-4 rounded-xl bg-steel-800/70 p-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-steel-400">
+              <div className="mt-4 rounded-xl bg-paper-200/70 p-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-ink-500">
                   {t('betterLine')}
                 </h4>
-                <p className="mt-1.5 text-sm font-medium text-steel-100">“{detail.betterLine}”</p>
+                <p className="mt-1.5 text-sm font-medium text-ink-900">“{detail.betterLine}”</p>
               </div>
             )}
           </section>
@@ -161,7 +161,7 @@ export function Scorecard({
 
       {transcript && transcript.length > 0 && (
         <details className="card">
-          <summary className="cursor-pointer text-sm font-bold text-steel-300">
+          <summary className="cursor-pointer text-sm font-bold text-ink-600">
             {tPractice('transcript')}
           </summary>
           <ul className="mt-3 space-y-2">
@@ -171,8 +171,8 @@ export function Scorecard({
                 className={cx(
                   'rounded-lg px-3 py-2 text-sm',
                   turn.role === 'rep'
-                    ? 'ml-6 bg-signal-500/15'
-                    : 'mr-6 bg-steel-800',
+                    ? 'ml-6 bg-gold-500/15'
+                    : 'mr-6 bg-paper-200',
                 )}
               >
                 {turn.text}
@@ -198,7 +198,7 @@ function OutcomeBadge({ outcome }: { outcome: ScorecardData['outcome'] }) {
 
   return (
     <span
-      className="rounded-full px-3 py-1 text-sm font-bold text-steel-950"
+      className="rounded-full px-3 py-1 text-sm font-bold text-white"
       style={{ backgroundColor: color }}
     >
       {t(outcome)}

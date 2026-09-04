@@ -139,7 +139,7 @@ export function PracticeRoom({
     return (
       <div className="py-20 text-center">
         <div className="animate-truss-pulse text-3xl">•••</div>
-        <p className="mt-4 font-semibold text-steel-200">{t('scoring')}</p>
+        <p className="mt-4 font-semibold text-ink-800">{t('scoring')}</p>
       </div>
     );
   }
@@ -149,7 +149,7 @@ export function PracticeRoom({
       <div className="mt-6">
         {scoreError ? (
           <div className="card border-nogo/40 bg-nogo/10">
-            <p className="font-semibold text-red-200">{scoreError}</p>
+            <p className="font-semibold text-nogo">{scoreError}</p>
           </div>
         ) : scorecard ? (
           <Scorecard data={scorecard} transcript={realtime.turns} />
@@ -204,19 +204,19 @@ function ScenarioPicker({
           </div>
 
           {scenario.language === 'es' && (
-            <span className="mt-2 w-fit rounded-full bg-steel-800 px-2.5 py-0.5 text-xs font-bold text-steel-300">
+            <span className="mt-2 w-fit rounded-full bg-paper-200 px-2.5 py-0.5 text-xs font-bold text-ink-600">
               Español
             </span>
           )}
 
-          <p className="mt-3 flex-1 text-sm leading-relaxed text-steel-300">{scenario.setup}</p>
+          <p className="mt-3 flex-1 text-sm leading-relaxed text-ink-600">{scenario.setup}</p>
 
           {scenario.focusStages.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-1.5">
               {scenario.focusStages.map((stage) => (
                 <span
                   key={stage}
-                  className="rounded-full px-2.5 py-0.5 text-xs font-bold text-steel-950"
+                  className="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
                   style={{ backgroundColor: STAGE_COLOR[stage] }}
                 >
                   {stage}
@@ -288,22 +288,22 @@ function LiveSession({
       <audio ref={realtime.audioRef} autoPlay playsInline className="sr-only" />
 
       <section className="card">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
           {t('scenarioSetup')}
         </h2>
         <p className="mt-2 font-semibold">{scenario.title}</p>
-        <p className="mt-1 text-sm text-steel-300">{scenario.setup}</p>
+        <p className="mt-1 text-sm text-ink-600">{scenario.setup}</p>
       </section>
 
       {micDenied && (
         <div role="alert" className="card mt-4 border-marginal/40 bg-marginal/10">
-          <p className="text-sm text-amber-100">{t('micDenied')}</p>
+          <p className="text-sm text-marginal">{t('micDenied')}</p>
         </div>
       )}
 
       {fallback && !micDenied && (
-        <div role="status" className="card mt-4 border-steel-700 bg-steel-900">
-          <p className="text-sm text-steel-300">{t('connectionLost')}</p>
+        <div role="status" className="card mt-4 border-line-strong bg-surface">
+          <p className="text-sm text-ink-600">{t('connectionLost')}</p>
         </div>
       )}
 
@@ -312,7 +312,7 @@ function LiveSession({
         <div className="relative">
           {speaking && (
             <span
-              className="absolute inset-0 rounded-full border-2 border-signal-500 animate-truss-ring"
+              className="absolute inset-0 rounded-full border-2 border-gold-500 animate-truss-ring"
               aria-hidden
             />
           )}
@@ -320,9 +320,9 @@ function LiveSession({
             className={cx(
               'flex h-28 w-28 items-center justify-center rounded-full border-4 transition-colors',
               speaking
-                ? 'border-signal-500 bg-signal-500/15'
+                ? 'border-gold-500 bg-gold-500/15'
                 : connecting
-                  ? 'border-steel-600 bg-steel-800'
+                  ? 'border-line-strong bg-paper-200'
                   : 'border-go bg-go/10',
             )}
           >
@@ -339,7 +339,7 @@ function LiveSession({
                 ? t('holdToTalk')
                 : t('yourTurn')}
         </p>
-        <p className="mt-1 max-w-xs text-center text-xs text-steel-500">{t('micHelp')}</p>
+        <p className="mt-1 max-w-xs text-center text-xs text-ink-400">{t('micHelp')}</p>
       </div>
 
       {/* Hold-to-talk controls, shown only on the fallback path. */}
@@ -351,7 +351,7 @@ function LiveSession({
               'btn h-20 w-full max-w-xs rounded-2xl text-lg font-extrabold',
               ptt.state === 'recording'
                 ? 'bg-nogo text-white'
-                : 'bg-signal-500 text-steel-950',
+                : 'bg-gold-500 text-navy-900',
             )}
             disabled={ptt.state === 'sending' || ptt.state === 'playing'}
             onPointerDown={() => void ptt.startRecording()}
@@ -393,7 +393,7 @@ function LiveSession({
       {/* Live transcript. Reps learn from seeing their own words. */}
       {turns.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-steel-400">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
             {t('transcript')}
           </h2>
           <ul className="mt-3 space-y-2">
@@ -403,8 +403,8 @@ function LiveSession({
                 className={cx(
                   'rounded-xl px-4 py-2.5 text-sm',
                   turn.role === 'rep'
-                    ? 'ml-8 bg-signal-500/15 text-steel-100'
-                    : 'mr-8 border border-steel-800 bg-steel-900 text-steel-200',
+                    ? 'ml-8 bg-gold-500/15 text-ink-900'
+                    : 'mr-8 border border-line bg-surface text-ink-800',
                 )}
               >
                 {turn.text}

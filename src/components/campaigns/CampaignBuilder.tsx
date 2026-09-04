@@ -151,7 +151,7 @@ export function CampaignBuilder({ existing }: { existing: Campaign[] }) {
                   aria-pressed={stage === s.id}
                   className={cx(
                     'min-h-touch rounded-xl border px-4 text-sm font-semibold transition-colors',
-                    stage === s.id ? 'border-transparent text-steel-950' : 'border-steel-700 text-steel-300',
+                    stage === s.id ? 'border-transparent text-white' : 'border-line-strong text-ink-600',
                   )}
                   style={stage === s.id ? { backgroundColor: STAGE_COLOR[s.id] } : undefined}
                 >
@@ -173,8 +173,8 @@ export function CampaignBuilder({ existing }: { existing: Campaign[] }) {
                   className={cx(
                     'min-h-touch rounded-xl border px-4 text-sm font-semibold transition-colors',
                     channels.includes(channel)
-                      ? 'border-signal-500 bg-signal-500/15 text-signal-400'
-                      : 'border-steel-700 text-steel-300',
+                      ? 'border-gold-500 bg-gold-500/15 text-gold-600'
+                      : 'border-line-strong text-ink-600',
                   )}
                 >
                   {CHANNEL_LABELS[channel]}
@@ -183,7 +183,7 @@ export function CampaignBuilder({ existing }: { existing: Campaign[] }) {
             </div>
           </fieldset>
 
-          {error && <p role="alert" className="text-sm text-red-300">{error}</p>}
+          {error && <p role="alert" className="text-sm text-nogo">{error}</p>}
 
           <div className="flex gap-2">
             <button
@@ -230,38 +230,38 @@ function CampaignCard({ campaign }: { campaign: Campaign }) {
       <div className="flex items-start justify-between gap-3">
         <h2 className="text-lg font-bold">{campaign.name}</h2>
         <span
-          className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold text-steel-950"
-          style={{ backgroundColor: STAGE_COLOR[campaign.stage as StageId] ?? 'var(--color-signal-500)' }}
+          className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
+          style={{ backgroundColor: STAGE_COLOR[campaign.stage as StageId] ?? 'var(--color-gold-500)' }}
         >
           {campaign.stage}
         </span>
       </div>
-      {campaign.audience && <p className="mt-1 text-sm text-steel-400">{campaign.audience}</p>}
+      {campaign.audience && <p className="mt-1 text-sm text-ink-500">{campaign.audience}</p>}
 
       <div className="mt-4 space-y-3">
         {pieces.map((piece, i) => {
           const key = `${campaign.id}-${i}`;
           return (
-            <div key={key} className="rounded-xl border border-steel-800 bg-steel-950/60 p-3">
+            <div key={key} className="rounded-xl border border-line bg-paper/60 p-3">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-steel-400">
+                <span className="text-xs font-bold uppercase tracking-wider text-ink-500">
                   {CHANNEL_LABELS[piece.channel] ?? piece.channel}
-                  <span className="ml-2 rounded bg-steel-800 px-1.5 py-0.5 text-[10px]">
+                  <span className="ml-2 rounded bg-paper-200 px-1.5 py-0.5 text-[10px]">
                     {piece.language.toUpperCase()}
                   </span>
                 </span>
                 <button
                   type="button"
                   onClick={() => copy(piece, key)}
-                  className="rounded-lg px-2 py-1 text-xs font-semibold text-steel-300 hover:bg-steel-800"
+                  className="rounded-lg px-2 py-1 text-xs font-semibold text-ink-600 hover:bg-paper-200"
                 >
                   {copied === key ? t('copied') : t('copy')}
                 </button>
               </div>
 
               {piece.subject && <p className="mt-2 text-sm font-bold">{piece.subject}</p>}
-              <p className="mt-1 whitespace-pre-wrap text-sm text-steel-200">{piece.body}</p>
-              {piece.note && <p className="mt-2 text-xs italic text-steel-500">{piece.note}</p>}
+              <p className="mt-1 whitespace-pre-wrap text-sm text-ink-800">{piece.body}</p>
+              {piece.note && <p className="mt-2 text-xs italic text-ink-400">{piece.note}</p>}
             </div>
           );
         })}
