@@ -41,7 +41,7 @@ begin
     raise exception 'That company name is too long.' using errcode = '22023';
   end if;
 
-  v_base := nullif(btrim(both '-' from regexp_replace(lower(v_name), '[^a-z0-9]+', '-', 'g')), '');
+  v_base := nullif(btrim(regexp_replace(lower(v_name), '[^a-z0-9]+', '-', 'g'), '-'), '');
   v_base := coalesce(left(v_base, 40), 'company');
 
   -- Retry rather than trusting a random suffix to be unique on the first try.
