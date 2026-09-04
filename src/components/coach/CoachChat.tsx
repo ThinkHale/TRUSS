@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { STAGES, type StageId } from '@/lib/truss/methodology';
 import { STAGE_COLOR, cx } from '@/lib/truss/ui';
+import { TrussMark } from '@/components/brand/Logo';
 
 /**
  * The Coach conversation.
@@ -225,7 +226,8 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
   const suggestions = ['objection', 'deductible', 'adjuster', 'opener'] as const;
 
   return (
-    <div className="mx-auto max-w-2xl py-6">
+    <div className="coach-empty mx-auto max-w-2xl py-6">
+      <div className="coach-empty-mark"><TrussMark size={44} /></div>
       <h2 className="text-xl font-bold">{t('emptyTitle')}</h2>
       <p className="mt-2 text-steel-300">{t('emptyBody')}</p>
 
@@ -240,6 +242,7 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
               className="min-h-touch rounded-xl border border-steel-700 px-4 py-3 text-left text-sm font-medium text-steel-200 transition-colors hover:border-signal-500 hover:bg-steel-900"
             >
               {text}
+              <span aria-hidden>›</span>
             </button>
           );
         })}

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { Wordmark } from '@/components/brand/Logo';
+import { BrandLogo, Wordmark } from '@/components/brand/Logo';
 import { LanguageToggle } from '@/components/LanguageToggle';
 
 export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
@@ -11,7 +11,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <header className="site-header">
         <div className="site-header-inner">
           <Link href="/" aria-label="TRUSS home">
-            <Wordmark compact />
+            <BrandLogo priority className="site-brand-logo" />
           </Link>
           <nav className="site-nav">
             <LanguageToggle />

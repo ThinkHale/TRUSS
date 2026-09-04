@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { cx } from '@/lib/truss/ui';
+import { BrandLogo } from '@/components/brand/Logo';
 
 /**
  * Primary navigation.
@@ -28,7 +29,7 @@ const ITEMS: NavItem[] = [
   { href: '/accounts', key: 'accounts', icon: <IconHome /> },
 ];
 
-export function AppNav() {
+export function AppNav({ orgName }: { orgName: string }) {
   const pathname = usePathname();
   const t = useTranslations('nav');
 
@@ -36,7 +37,7 @@ export function AppNav() {
     <>
       {/* Phone: bottom bar */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-steel-800 bg-steel-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        className="app-mobile-nav fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
         aria-label="Main"
       >
         <ul className="flex">
@@ -62,8 +63,11 @@ export function AppNav() {
       </nav>
 
       {/* Desktop: sidebar */}
-      <nav className="hidden w-56 shrink-0 border-r border-steel-800 p-3 md:block" aria-label="Main">
-        <ul className="space-y-1">
+      <nav className="app-sidebar hidden shrink-0 md:flex" aria-label="Main">
+        <Link href="/coach" className="app-sidebar-brand" aria-label="TRUSS Coach home">
+          <BrandLogo priority className="app-sidebar-logo" />
+        </Link>
+        <ul className="app-sidebar-items space-y-1">
           {ITEMS.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
@@ -72,7 +76,7 @@ export function AppNav() {
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
                   className={cx(
-                    'flex min-h-touch items-center gap-3 rounded-xl px-3 font-semibold transition-colors',
+                    'app-sidebar-link flex min-h-touch items-center gap-3 px-3 font-semibold transition-colors',
                     active
                       ? 'bg-steel-800 text-steel-50'
                       : 'text-steel-400 hover:bg-steel-800/60 hover:text-steel-100',
@@ -88,6 +92,13 @@ export function AppNav() {
             );
           })}
         </ul>
+        <div className="app-sidebar-footer">
+          <Link href="/settings" className="app-org-link">
+            <span>{(orgName || 'T').charAt(0).toUpperCase()}</span>
+            <div><b>{orgName}</b><small>Settings</small></div>
+            <i aria-hidden>›</i>
+          </Link>
+        </div>
       </nav>
     </>
   );

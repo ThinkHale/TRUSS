@@ -35,7 +35,7 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
   const stage = account.truss_stage as StageId;
 
   return (
-    <div className="px-5 py-5">
+    <div className="app-page">
       <Link href="/accounts" className="text-sm font-semibold text-steel-400 hover:text-steel-200">
         ← {tc('back')}
       </Link>

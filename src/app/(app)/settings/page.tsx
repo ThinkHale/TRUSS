@@ -30,7 +30,7 @@ export default async function SettingsPage() {
     .maybeSingle();
 
   return (
-    <div className="px-5 py-5">
+    <div className="app-page app-settings-page">
       <h1 className="text-2xl font-extrabold tracking-tight">{t('language')}</h1>
 
       <section className="card mt-4">

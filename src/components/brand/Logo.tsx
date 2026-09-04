@@ -55,3 +55,25 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
     </div>
   );
 }
+
+/** The supplied production lockup, used on dark brand surfaces. */
+export function BrandLogo({
+  className = '',
+  priority = false,
+}: {
+  className?: string;
+  priority?: boolean;
+}) {
+  return (
+    <Image
+      src="/brand/truss-logo.png"
+      alt="TRUSS — Sales intelligence for the Trades"
+      width={1800}
+      height={873}
+      priority={priority}
+      sizes="(max-width: 640px) 156px, 240px"
+      className={`h-auto w-60 object-contain ${className}`}
+    />
+  );
+}
+import Image from 'next/image';

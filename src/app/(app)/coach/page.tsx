@@ -29,10 +29,10 @@ export default async function CoachPage({
   }
 
   return (
-    <div className="flex h-[calc(100vh-8.5rem)] flex-col md:h-[calc(100vh-4rem)]">
-      <div className="border-b border-steel-800 px-5 py-4">
-        <h1 className="text-2xl font-extrabold tracking-tight">{t('title')}</h1>
-        <p className="mt-0.5 text-sm text-steel-400">{t('subtitle')}</p>
+    <div className="coach-page flex h-[calc(100vh-8.5rem)] flex-col md:h-screen">
+      <div className="app-page-heading">
+        <h1>{t('title')}</h1>
+        <p>{t('subtitle')}</p>
       </div>
 
       <CoachChat

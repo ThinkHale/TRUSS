@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0a0c10',
+  themeColor: '#071c2f',
   width: 'device-width',
   initialScale: 1,
   // Reps zoom in on photos and scope sheets; never lock that away.
