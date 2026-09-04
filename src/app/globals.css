@@ -1,0 +1,155 @@
+@import 'tailwindcss';
+
+/*
+ * TRUSS design tokens.
+ *
+ * The audience reads this on a phone, outdoors, often in direct sun, sometimes
+ * wearing gloves. Every decision below follows from that: heavy contrast, large
+ * type, generous touch targets, and no thin gray text on white.
+ */
+
+@theme {
+  /* Structural base. Graphite rather than pure black — easier in bright light. */
+  --color-steel-50:  #f5f6f8;
+  --color-steel-100: #e6e9ee;
+  --color-steel-200: #c9cfda;
+  --color-steel-300: #9ba5b8;
+  --color-steel-400: #6b7791;
+  --color-steel-500: #4a5468;
+  --color-steel-600: #363e4e;
+  --color-steel-700: #262c39;
+  --color-steel-800: #1a1f28;
+  --color-steel-900: #11141a;
+  --color-steel-950: #0a0c10;
+
+  /* Safety orange. The brand accent, borrowed from the job site. */
+  --color-signal-300: #ffb066;
+  --color-signal-400: #ff9436;
+  --color-signal-500: #f97316;
+  --color-signal-600: #e2590a;
+  --color-signal-700: #b8450a;
+
+  /* One color per TRUSS stage, used consistently everywhere a stage appears. */
+  --color-stage-trust:      #f59e0b;
+  --color-stage-relate:     #38bdf8;
+  --color-stage-understand: #a78bfa;
+  --color-stage-solve:      #34d399;
+  --color-stage-secure:     #fb7185;
+
+  /* Go / no-go, used for crew and canvassing conditions. */
+  --color-go:       #22c55e;
+  --color-marginal: #eab308;
+  --color-nogo:     #ef4444;
+
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Minimum comfortable touch target for a gloved hand. */
+  --spacing-touch: 3rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-steel-950);
+    color: var(--color-steel-50);
+    font-family: var(--font-sans);
+    /* Never smaller than 16px: it prevents iOS zoom-on-focus and it is readable. */
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Inputs at 16px or larger stop iOS Safari from zooming the whole page. */
+  input,
+  textarea,
+  select,
+  button {
+    font-size: max(1rem, inherit);
+    font-family: inherit;
+  }
+
+  /* Visible focus everywhere. Reps navigate with thumbs and, in trucks, keyboards. */
+  :focus-visible {
+    outline: 2px solid var(--color-signal-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /*
+   * Buttons share a base block rather than composing through @apply, because
+   * Tailwind v4 only lets @apply pull in real utilities, not custom classes.
+   */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 font-semibold
+           transition-colors select-none;
+    min-height: var(--spacing-touch);
+  }
+
+  .btn-primary:disabled,
+  .btn-secondary:disabled,
+  .btn-ghost:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-signal-500 text-steel-950 hover:bg-signal-400 active:bg-signal-600;
+  }
+
+  .btn-secondary {
+    @apply bg-steel-700 text-steel-50 hover:bg-steel-600 active:bg-steel-800;
+  }
+
+  .btn-ghost {
+    @apply border border-steel-700 text-steel-200 hover:bg-steel-800;
+  }
+
+  .card {
+    @apply rounded-2xl border border-steel-800 bg-steel-900 p-5;
+  }
+
+  .field {
+    @apply w-full rounded-xl border border-steel-700 bg-steel-900 px-4 py-3
+           text-steel-50 placeholder:text-steel-400
+           focus:border-signal-500 focus:outline-none;
+    min-height: var(--spacing-touch);
+  }
+
+  .label {
+    @apply mb-2 block text-sm font-semibold text-steel-200;
+  }
+}
+
+/* The Coach streams tokens; this is the caret while it writes. */
+@keyframes truss-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+.animate-truss-pulse {
+  animation: truss-pulse 1.4s ease-in-out infinite;
+}
+
+/* Ring around the mic while the character is speaking. */
+@keyframes truss-ring {
+  0%   { transform: scale(1);    opacity: 0.7; }
+  100% { transform: scale(1.6);  opacity: 0; }
+}
+.animate-truss-ring {
+  animation: truss-ring 1.6s ease-out infinite;
+}

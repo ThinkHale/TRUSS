@@ -1,0 +1,32 @@
+{
+  "name": "truss",
+  "version": "0.1.0",
+  "private": true,
+  "description": "TRUSS — Sales intelligence for the Trades",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.115.0",
+    "next": "^16.3.4",
+    "next-intl": "^4.14.2",
+    "openai": "^7.10.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "stripe": "^22.6.1",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "brand": {
+    "name": "TRUSS",
+    "tagline": "Inteligencia de ventas para los oficios",
+    "expansion": "Confianza · Conectar · Entender · Resolver · Asegurar"
+  },
+  "nav": {
+    "coach": "Coach",
+    "practice": "Práctica",
+    "research": "Investigar",
+    "campaigns": "Campañas",
+    "accounts": "Cuentas",
+    "settings": "Ajustes",
+    "signOut": "Cerrar sesión"
+  },
+  "common": {
+    "loading": "Trabajando…",
+    "send": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Borrar",
+    "back": "Atrás",
+    "retry": "Intentar de nuevo",
+    "close": "Cerrar",
+    "language": "Idioma",
+    "notConfigured": "Aún no configurado",
+    "signIn": "Iniciar sesión",
+    "getStarted": "Empezar"
+  },
+  "stages": {
+    "trust": "Confianza",
+    "relate": "Conectar",
+    "understand": "Entender",
+    "solve": "Resolver",
+    "secure": "Asegurar"
+  },
+  "coach": {
+    "title": "TRUSS Coach",
+    "subtitle": "Pregunta lo que sea. Respuestas reales para puertas reales.",
+    "placeholder": "¿Qué pasó hoy allá afuera?",
+    "emptyTitle": "¿En qué estamos trabajando?",
+    "emptyBody": "Cuéntame de una puerta que salió mal, un reclamo atorado, o un cliente que no logras entender.",
+    "suggestions": {
+      "objection": "Dicen que ya firmaron con otra compañía",
+      "deductible": "¿Cómo manejo el tema del deducible?",
+      "adjuster": "El ajustador negó mi reclamo. ¿Ahora qué?",
+      "opener": "Dame una mejor forma de abrir en la puerta"
+    },
+    "focusStage": "Enfócate en una etapa",
+    "allStages": "Todo",
+    "sources": "De los materiales de tu compañía",
+    "quotaTitle": "Se acabaron tus mensajes del Coach",
+    "quotaBody": "Tu plan se reinicia el mes que viene, o puedes mejorar tu plan."
+  },
+  "practice": {
+    "title": "Práctica",
+    "subtitle": "Habla en voz alta con un cliente. Recibe tu puntaje TRUSS.",
+    "start": "Empezar a hablar",
+    "startText": "Mejor escribir",
+    "end": "Terminar y calificar",
+    "listening": "Escuchando…",
+    "speaking": "Están hablando…",
+    "connecting": "Conectando…",
+    "yourTurn": "Tu turno — solo habla",
+    "holdToTalk": "Mantén presionado para hablar",
+    "micDenied": "TRUSS necesita tu micrófono para practicar en voz alta. Actívalo en tu navegador, o escribe en su lugar.",
+    "micHelp": "Tu voz se usa para calificar la conversación y no se comparte fuera de tu compañía.",
+    "difficulty": {
+      "easy": "Más fácil",
+      "moderate": "Realista",
+      "hard": "Difícil"
+    },
+    "scenarioSetup": "La situación",
+    "scoring": "Calificando tu conversación…",
+    "tooShort": "Fue muy corta para calificar. Dale una oportunidad real.",
+    "connectionLost": "Se cayó la conexión. Cambiando a mantener presionado.",
+    "transcript": "Lo que se dijo"
+  },
+  "scorecard": {
+    "title": "Tu calificación",
+    "total": "Total",
+    "outcome": "Resultado",
+    "headline": "Trabaja en esto",
+    "wentWell": "Lo que funcionó",
+    "improve": "Cambia esto",
+    "betterLine": "Intenta decir",
+    "evidence": "Dijiste",
+    "outcomes": {
+      "signed": "Firmado",
+      "next-step-set": "Siguiente paso fijado",
+      "no-commitment": "Sin compromiso",
+      "lost": "Perdido"
+    },
+    "practiceAgain": "Hazlo otra vez"
+  },
+  "research": {
+    "title": "Investigar",
+    "subtitle": "Conoce la zona antes de tocar puertas.",
+    "placeholder": "Dirección, vecindario o código postal",
+    "search": "Buscar",
+    "radius": "Dentro de",
+    "miles": "millas",
+    "brief": "El resumen",
+    "weather": "Clima",
+    "workWindows": "¿Se puede trabajar?",
+    "storms": "Historial de tormentas",
+    "properties": "Vale la pena llamar",
+    "install": "Cuadrillas",
+    "canvass": "Tocar puertas",
+    "ratings": {
+      "good": "Bien",
+      "marginal": "Regular",
+      "no-go": "No"
+    },
+    "noStorms": "No hay reportes de clima severo en este periodo."
+  },
+  "campaigns": {
+    "title": "Campañas",
+    "subtitle": "Mensajes que coinciden con la etapa en la que estás.",
+    "create": "Nueva campaña",
+    "name": "Nombre de la campaña",
+    "audience": "¿Para quién es?",
+    "channels": "¿Por dónde se envía?",
+    "trigger": "¿Qué la provocó?",
+    "generate": "Escribirla",
+    "stageServed": "Sirve para",
+    "copy": "Copiar",
+    "copied": "Copiado"
+  },
+  "accounts": {
+    "title": "Cuentas",
+    "subtitle": "Cada propiedad, y cómo va.",
+    "create": "Agregar cuenta",
+    "empty": "Aún no hay cuentas. Agrega la primera después de tu próxima inspección.",
+    "carrier": "Aseguradora",
+    "deductible": "Deducible",
+    "claimStatus": "Reclamo",
+    "stage": "Etapa",
+    "lastActivity": "Última actividad",
+    "decisionMaker": "Quien decide",
+    "brief": "Prepárame para esta visita"
+  },
+  "marketing": {
+    "heroTitle": "Tu mejor vendedor, en cada troca.",
+    "heroBody": "TRUSS es un coach de ventas que entrena a techadores y contratistas en las cinco cosas que de verdad cierran un trabajo: Confianza, Conectar, Entender, Resolver, Asegurar.",
+    "heroCta": "Empezar gratis",
+    "heroSecondary": "Ver cómo funciona",
+    "practiceTitle": "Practica en voz alta, antes de la puerta",
+    "practiceBody": "Los vendedores hablan con un cliente virtual y reciben calificación por lo que de verdad dijeron. En inglés o español.",
+    "coachTitle": "Un coach que conoce los oficios",
+    "coachBody": "Reclamos de seguro, deducibles, ajustadores, estafadores de tormenta. TRUSS Coach conoce el trabajo porque fue hecho para eso.",
+    "researchTitle": "Conoce el clima y el historial de tormentas",
+    "researchBody": "Mira dónde cayó el granizo, si todavía se puede reclamar, y si tus cuadrillas pueden trabajar esta semana.",
+    "enterpriseTitle": "Empresas: tu manual, tu TRUSS",
+    "enterpriseBody": "Cargamos tu entrenamiento, tu proceso, tus reglas de precios y tus políticas. Tus vendedores aprenden a vender como tu compañía vende.",
+    "enterpriseCta": "Hablemos",
+    "pricingTitle": "Precios simples",
+    "perMonth": "por usuario / mes",
+    "contactUs": "Contáctanos"
+  },
+  "errors": {
+    "generic": "Algo salió mal. Intenta de nuevo.",
+    "offline": "No tienes señal. TRUSS lo intentará otra vez cuando tengas conexión.",
+    "unauthorized": "Inicia sesión para continuar."
+  }
+}

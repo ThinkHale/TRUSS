@@ -1,0 +1,166 @@
+{
+  "brand": {
+    "name": "TRUSS",
+    "tagline": "Sales intelligence for the Trades",
+    "expansion": "Trust · Relate · Understand · Solve · Secure"
+  },
+  "nav": {
+    "coach": "Coach",
+    "practice": "Practice",
+    "research": "Research",
+    "campaigns": "Campaigns",
+    "accounts": "Accounts",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "common": {
+    "loading": "Working…",
+    "send": "Send",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "back": "Back",
+    "retry": "Try again",
+    "close": "Close",
+    "language": "Language",
+    "notConfigured": "Not set up yet",
+    "signIn": "Sign in",
+    "getStarted": "Get started"
+  },
+  "stages": {
+    "trust": "Trust",
+    "relate": "Relate",
+    "understand": "Understand",
+    "solve": "Solve",
+    "secure": "Secure"
+  },
+  "coach": {
+    "title": "TRUSS Coach",
+    "subtitle": "Ask anything. Real answers for real doors.",
+    "placeholder": "What happened out there today?",
+    "emptyTitle": "What are we working on?",
+    "emptyBody": "Tell me about a door that went sideways, a claim you are stuck on, or a homeowner you cannot read.",
+    "suggestions": {
+      "objection": "They said they already signed with someone",
+      "deductible": "How do I handle the deductible conversation?",
+      "adjuster": "The adjuster denied my claim. Now what?",
+      "opener": "Give me a better door opener"
+    },
+    "focusStage": "Focus on one stage",
+    "allStages": "Everything",
+    "sources": "From your company material",
+    "quotaTitle": "You are out of Coach messages",
+    "quotaBody": "Your plan resets at the start of next month, or you can upgrade."
+  },
+  "practice": {
+    "title": "Practice",
+    "subtitle": "Talk to a homeowner out loud. Get scored on TRUSS.",
+    "start": "Start talking",
+    "startText": "Type instead",
+    "end": "End and score",
+    "listening": "Listening…",
+    "speaking": "They are talking…",
+    "connecting": "Connecting…",
+    "yourTurn": "Your turn — just talk",
+    "holdToTalk": "Hold to talk",
+    "micDenied": "TRUSS needs your microphone to practice out loud. Turn it on in your browser settings, or type instead.",
+    "micHelp": "Your voice is used to score the conversation and is not shared outside your company.",
+    "difficulty": {
+      "easy": "Easier",
+      "moderate": "Realistic",
+      "hard": "Tough"
+    },
+    "scenarioSetup": "The situation",
+    "scoring": "Scoring your conversation…",
+    "tooShort": "That was too short to score. Give it a real run.",
+    "connectionLost": "Connection dropped. Switching to hold-to-talk.",
+    "transcript": "What was said"
+  },
+  "scorecard": {
+    "title": "Your scorecard",
+    "total": "Total",
+    "outcome": "Outcome",
+    "headline": "Work on this next",
+    "wentWell": "What worked",
+    "improve": "Change this",
+    "betterLine": "Try saying",
+    "evidence": "You said",
+    "outcomes": {
+      "signed": "Signed",
+      "next-step-set": "Next step set",
+      "no-commitment": "No commitment",
+      "lost": "Lost"
+    },
+    "practiceAgain": "Run it again"
+  },
+  "research": {
+    "title": "Research",
+    "subtitle": "Know the area before you knock it.",
+    "placeholder": "Address, neighborhood, or ZIP code",
+    "search": "Look it up",
+    "radius": "Within",
+    "miles": "miles",
+    "brief": "The read",
+    "weather": "Weather",
+    "workWindows": "Can we work?",
+    "storms": "Storm history",
+    "properties": "Worth a call",
+    "install": "Crews",
+    "canvass": "Knocking",
+    "ratings": {
+      "good": "Good",
+      "marginal": "Marginal",
+      "no-go": "No go"
+    },
+    "noStorms": "No severe weather reports in this window."
+  },
+  "campaigns": {
+    "title": "Campaigns",
+    "subtitle": "Outreach that matches the stage you are in.",
+    "create": "New campaign",
+    "name": "Campaign name",
+    "audience": "Who is this for?",
+    "channels": "Where does it go?",
+    "trigger": "What triggered it?",
+    "generate": "Write it",
+    "stageServed": "Serves",
+    "copy": "Copy",
+    "copied": "Copied"
+  },
+  "accounts": {
+    "title": "Accounts",
+    "subtitle": "Every property, and where it stands.",
+    "create": "Add account",
+    "empty": "No accounts yet. Add the first one after your next inspection.",
+    "carrier": "Carrier",
+    "deductible": "Deductible",
+    "claimStatus": "Claim",
+    "stage": "Stage",
+    "lastActivity": "Last activity",
+    "decisionMaker": "Decision maker",
+    "brief": "Prep me for this visit"
+  },
+  "marketing": {
+    "heroTitle": "Your best closer, in every truck.",
+    "heroBody": "TRUSS is a sales coach that trains roofers and contractors on the five things that actually close a job: Trust, Relate, Understand, Solve, Secure.",
+    "heroCta": "Start free",
+    "heroSecondary": "See how it works",
+    "practiceTitle": "Practice out loud, before the door",
+    "practiceBody": "Reps talk to a virtual homeowner and get scored on what they actually said. In English or Spanish.",
+    "coachTitle": "A coach that knows the trades",
+    "coachBody": "Insurance claims, deductibles, adjusters, storm chasers. TRUSS Coach knows the job because it was built for it.",
+    "researchTitle": "Know the weather and the storm history",
+    "researchBody": "See where the hail hit, whether it is still claimable, and whether your crews can work this week.",
+    "enterpriseTitle": "Enterprise: your playbook, your TRUSS",
+    "enterpriseBody": "We load your training, your process, your pricing rules, and your policies. Your reps get coached on how your company sells.",
+    "enterpriseCta": "Talk to us",
+    "pricingTitle": "Simple pricing",
+    "perMonth": "per user / month",
+    "contactUs": "Contact us"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again.",
+    "offline": "You are offline. TRUSS will retry when you have signal.",
+    "unauthorized": "Sign in to keep going."
+  }
+}

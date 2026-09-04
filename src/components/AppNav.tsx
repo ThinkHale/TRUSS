@@ -1,0 +1,137 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { cx } from '@/lib/truss/ui';
+
+/**
+ * Primary navigation.
+ *
+ * Coach comes first and stays visually dominant everywhere, because it is the
+ * reason the platform exists. On phones this renders as a bottom bar, which is
+ * where a thumb actually reaches.
+ */
+
+interface NavItem {
+  href: string;
+  key: 'coach' | 'practice' | 'research' | 'campaigns' | 'accounts';
+  icon: React.ReactNode;
+  primary?: boolean;
+}
+
+const ITEMS: NavItem[] = [
+  { href: '/coach', key: 'coach', primary: true, icon: <IconCoach /> },
+  { href: '/practice', key: 'practice', icon: <IconMic /> },
+  { href: '/research', key: 'research', icon: <IconMap /> },
+  { href: '/campaigns', key: 'campaigns', icon: <IconMegaphone /> },
+  { href: '/accounts', key: 'accounts', icon: <IconHome /> },
+];
+
+export function AppNav() {
+  const pathname = usePathname();
+  const t = useTranslations('nav');
+
+  return (
+    <>
+      {/* Phone: bottom bar */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-steel-800 bg-steel-900/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+        aria-label="Main"
+      >
+        <ul className="flex">
+          {ITEMS.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <li key={item.href} className="flex-1">
+                <Link
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cx(
+                    'flex min-h-touch flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold',
+                    active ? 'text-signal-500' : 'text-steel-400',
+                  )}
+                >
+                  <span className={cx(item.primary && !active && 'text-steel-200')}>{item.icon}</span>
+                  {t(item.key)}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Desktop: sidebar */}
+      <nav className="hidden w-56 shrink-0 border-r border-steel-800 p-3 md:block" aria-label="Main">
+        <ul className="space-y-1">
+          {ITEMS.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cx(
+                    'flex min-h-touch items-center gap-3 rounded-xl px-3 font-semibold transition-colors',
+                    active
+                      ? 'bg-steel-800 text-steel-50'
+                      : 'text-steel-400 hover:bg-steel-800/60 hover:text-steel-100',
+                    item.primary && 'text-base',
+                  )}
+                >
+                  <span className={cx(active && item.primary && 'text-signal-500')}>
+                    {item.icon}
+                  </span>
+                  {t(item.key)}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </>
+  );
+}
+
+/* Icons are inline so the app ships no icon dependency and stays fast on 3G. */
+
+function IconCoach() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconMic() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconMap() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M9 20l-5.4-2.7A1 1 0 0 1 3 16.4V5.6a1 1 0 0 1 1.4-.9L9 7m0 13l6-3m-6 3V7m6 10l4.6 2.3a1 1 0 0 0 1.4-.9V7.6a1 1 0 0 0-.6-.9L15 4m0 13V4m0 0L9 7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconMegaphone() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M3 11v2a1 1 0 0 0 1 1h3l7 4V6l-7 4H4a1 1 0 0 0-1 1zM18 8a4 4 0 0 1 0 8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconHome() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M3 11l9-8 9 8M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
