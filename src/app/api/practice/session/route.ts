@@ -125,29 +125,36 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const res = await fetch('https://api.openai.com/v1/realtime/sessions', {
+  const res = await fetch('https://api.openai.com/v1/realtime/client_secrets', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: MODELS.realtime,
-      voice: scenario.voice,
-      instructions,
-      modalities: ['audio', 'text'],
-      // Transcribe the rep so the turn can be scored later.
-      input_audio_transcription: { model: 'whisper-1' },
-      // Server-side turn detection makes it feel like a real conversation:
-      // the character can be interrupted, and silence ends the rep's turn.
-      turn_detection: {
-        type: 'server_vad',
-        threshold: 0.5,
-        prefix_padding_ms: 300,
-        silence_duration_ms: 700,
-        create_response: true,
+      session: {
+        type: 'realtime',
+        model: MODELS.realtime,
+        instructions,
+        output_modalities: ['audio'],
+        audio: {
+          input: {
+            // Transcribe the rep so the turn can be scored later.
+            transcription: { model: 'whisper-1' },
+            // Server-side turn detection makes it feel like a real
+            // conversation: the character can be interrupted, and silence
+            // ends the rep's turn.
+            turn_detection: {
+              type: 'server_vad',
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 700,
+              create_response: true,
+            },
+          },
+          output: { voice: scenario.voice },
+        },
       },
-      temperature: 0.8,
     }),
   });
 
@@ -171,8 +178,8 @@ export async function POST(req: NextRequest) {
     mode,
     scenario: publicScenario(scenario),
     // Ephemeral, single-use, expires in roughly one minute.
-    clientSecret: realtime.client_secret?.value,
-    expiresAt: realtime.client_secret?.expires_at,
+    clientSecret: realtime.value,
+    expiresAt: realtime.expires_at,
     model: MODELS.realtime,
   });
 }

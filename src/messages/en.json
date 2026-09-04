@@ -74,7 +74,9 @@
     "scoring": "Scoring your conversation…",
     "tooShort": "That was too short to score. Give it a real run.",
     "connectionLost": "Connection dropped. Switching to hold-to-talk.",
-    "transcript": "What was said"
+    "transcript": "What was said",
+    "connectFailed": "Could not reach the practice line. Check your connection and try again — or type instead.",
+    "connectFailedShort": "Could not connect"
   },
   "scorecard": {
     "title": "Your scorecard",

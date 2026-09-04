@@ -47,7 +47,7 @@ export interface RealtimeRoleplay {
   audioRef: React.RefObject<HTMLAudioElement | null>;
 }
 
-const REALTIME_URL = 'https://api.openai.com/v1/realtime';
+const REALTIME_URL = 'https://api.openai.com/v1/realtime/calls';
 /** Turns are flushed to the server in small batches to survive a drop. */
 const FLUSH_INTERVAL_MS = 5000;
 
@@ -211,7 +211,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
 
-        const model = credential.model ?? 'gpt-4o-realtime-preview';
+        const model = credential.model ?? 'gpt-realtime';
         const res = await fetch(`${REALTIME_URL}?model=${encodeURIComponent(model)}`, {
           method: 'POST',
           body: offer.sdp,
@@ -250,7 +250,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
             break;
 
           // The character's line, once it finishes speaking.
-          case 'response.audio_transcript.done':
+          case 'response.output_audio_transcript.done':
             recordTurn('character', String(event.transcript ?? ''));
             setState('listening');
             break;

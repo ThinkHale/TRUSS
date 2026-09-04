@@ -74,7 +74,9 @@
     "scoring": "Calificando tu conversación…",
     "tooShort": "Fue muy corta para calificar. Dale una oportunidad real.",
     "connectionLost": "Se cayó la conexión. Cambiando a mantener presionado.",
-    "transcript": "Lo que se dijo"
+    "transcript": "Lo que se dijo",
+    "connectFailed": "No se pudo conectar con la practica. Revisa tu conexion e intentalo de nuevo, o escribe en su lugar.",
+    "connectFailedShort": "No se pudo conectar"
   },
   "scorecard": {
     "title": "Tu calificación",

@@ -279,6 +279,9 @@ function LiveSession({
   const micDenied = realtime.error === 'mic-denied';
   const speaking = realtime.state === 'speaking';
   const connecting = realtime.state === 'connecting' || realtime.state === 'requesting-mic';
+  // Anything that failed for a reason the rep cannot act on. Without this the
+  // screen falls through to "your turn" and invites them to talk to nothing.
+  const failed = realtime.state === 'error' && !micDenied && !fallback;
 
   const turns = fallback ? ptt.turns : realtime.turns;
 
@@ -307,6 +310,12 @@ function LiveSession({
         </div>
       )}
 
+      {failed && (
+        <div role="alert" className="card mt-4 border-nogo/40 bg-nogo/10">
+          <p className="text-sm text-nogo">{t('connectFailed')}</p>
+        </div>
+      )}
+
       {/* The talking indicator: the single most important thing on screen. */}
       <div className="mt-6 flex flex-col items-center py-8">
         <div className="relative">
@@ -319,11 +328,13 @@ function LiveSession({
           <div
             className={cx(
               'flex h-28 w-28 items-center justify-center rounded-full border-4 transition-colors',
-              speaking
-                ? 'border-gold-500 bg-gold-500/15'
-                : connecting
-                  ? 'border-line-strong bg-paper-200'
-                  : 'border-go bg-go/10',
+              failed
+                ? 'border-nogo bg-nogo/10'
+                : speaking
+                  ? 'border-gold-500 bg-gold-500/15'
+                  : connecting
+                    ? 'border-line-strong bg-paper-200'
+                    : 'border-go bg-go/10',
             )}
           >
             <MicIcon size={40} />
@@ -331,13 +342,15 @@ function LiveSession({
         </div>
 
         <p className="mt-5 text-center text-lg font-bold">
-          {connecting
-            ? t('connecting')
-            : speaking
-              ? t('speaking')
-              : fallback
-                ? t('holdToTalk')
-                : t('yourTurn')}
+          {failed
+            ? t('connectFailedShort')
+            : connecting
+              ? t('connecting')
+              : speaking
+                ? t('speaking')
+                : fallback
+                  ? t('holdToTalk')
+                  : t('yourTurn')}
         </p>
         <p className="mt-1 max-w-xs text-center text-xs text-ink-400">{t('micHelp')}</p>
       </div>

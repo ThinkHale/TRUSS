@@ -26,7 +26,7 @@ export const MODELS = {
   /** Structured work: scorecards, research synthesis, campaign generation. */
   structured: process.env.OPENAI_MODEL_STRUCTURED ?? 'gpt-4.1',
   /** Speech-to-speech roleplay. */
-  realtime: process.env.OPENAI_MODEL_REALTIME ?? 'gpt-4o-realtime-preview',
+  realtime: process.env.OPENAI_MODEL_REALTIME ?? 'gpt-realtime',
   /** Transcription for the push-to-talk fallback path. */
   transcribe: process.env.OPENAI_MODEL_TRANSCRIBE ?? 'gpt-4o-transcribe',
   /** Speech synthesis for the push-to-talk fallback path. */
