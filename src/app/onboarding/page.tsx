@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { Wordmark } from '@/components/brand/Logo';
 import { OnboardingForm } from '@/components/OnboardingForm';
-import { supabaseServer } from '@/lib/supabase/server';
+import { isSupabaseConfigured, supabaseServer } from '@/lib/supabase/server';
 import { getSessionContext } from '@/lib/supabase/session';
 
 export const metadata: Metadata = { title: 'Welcome' };
@@ -13,6 +13,10 @@ export const metadata: Metadata = { title: 'Welcome' };
  * trades they do — both of which shape the Coach from the first question.
  */
 export default async function OnboardingPage() {
+  // Without a database configured there is no session to load; send people to
+  // setup rather than throwing a stack trace at them.
+  if (!isSupabaseConfigured()) redirect('/setup');
+
   const supabase = await supabaseServer();
   const {
     data: { user },
