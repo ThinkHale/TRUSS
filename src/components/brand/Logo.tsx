@@ -41,7 +41,7 @@ export function TrussMark({ size = 32, className = '' }: { size?: number; classN
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-2.5">
-      <TrussMark size={compact ? 26 : 32} className="text-steel-100 shrink-0" />
+      <TrussMark size={compact ? 30 : 36} className="shrink-0" />
       <div className="leading-none">
         <div className={compact ? 'text-lg font-extrabold tracking-tight' : 'text-xl font-extrabold tracking-tight'}>
           TRUSS
