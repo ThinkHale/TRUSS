@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { STAGES, type StageId } from '@/lib/truss/methodology';
 import { STAGE_COLOR, cx } from '@/lib/truss/ui';
-import { TrussMark } from '@/components/brand/Logo';
+import { BrandLogo } from '@/components/brand/Logo';
 
 /**
  * The Coach conversation.
@@ -132,8 +132,10 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Stage focus. Lets a rep drill one stage instead of asking generally. */}
-      <div className="flex gap-2 overflow-x-auto border-b border-line px-5 py-3">
+      {/* Stage focus. Lets a rep drill one stage instead of asking generally.
+          Laid out in CSS: a scrolling row on a desktop, and a 3x2 grid on a
+          phone so every stage is reachable without a sideways swipe. */}
+      <div className="coach-stages">
         <StageChip active={stageFocus === null} onClick={() => setStageFocus(null)}>
           {t('allStages')}
         </StageChip>
@@ -149,7 +151,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
         ))}
       </div>
 
-      <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+      <div ref={scrollRef} className="coach-scroll min-h-0 flex-1 overflow-y-auto">
         {empty ? (
           <EmptyState onPick={send} />
         ) : (
@@ -184,7 +186,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
           e.preventDefault();
           void send(input);
         }}
-        className="border-t border-line bg-paper px-5 py-3"
+        className="coach-composer"
       >
         <div className="mx-auto flex max-w-2xl items-end gap-2">
           <textarea
@@ -230,7 +232,8 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
 
   return (
     <div className="coach-empty mx-auto max-w-2xl py-6">
-      <div className="coach-empty-mark"><TrussMark size={44} /></div>
+      {/* The lockup's wordmark is white, so it sits on navy rather than paper. */}
+      <div className="coach-empty-mark"><BrandLogo className="coach-empty-logo" /></div>
       <h2 className="text-xl font-bold">{t('emptyTitle')}</h2>
       <p className="mt-2 text-ink-600">{t('emptyBody')}</p>
 

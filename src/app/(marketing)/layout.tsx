@@ -11,7 +11,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <header className="site-header">
         <div className="site-header-inner">
           <Link href="/" aria-label="TRUSS home">
-            <BrandLogo priority className="site-brand-logo" />
+            <BrandLogo preload className="site-brand-logo" />
           </Link>
           <nav className="site-nav">
             <LanguageToggle />

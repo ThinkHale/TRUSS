@@ -29,7 +29,7 @@ export default async function CoachPage({
   }
 
   return (
-    <div className="coach-page flex h-[calc(100vh-8.5rem)] flex-col md:h-screen">
+    <div className="coach-page flex flex-col">
       <div className="app-page-heading">
         <h1>{t('title')}</h1>
         <p>{t('subtitle')}</p>

@@ -17,7 +17,9 @@ export function LanguageToggle() {
   const [pending, startTransition] = useTransition();
 
   return (
-    <div className="flex rounded-lg border border-line-strong p-0.5" role="group" aria-label="Language">
+    // .lang-toggle carries the navy-chrome treatment: the paper-first colors
+    // below are unreadable on the mobile header and the marketing header.
+    <div className="lang-toggle flex rounded-lg border border-line-strong p-0.5" role="group" aria-label="Language">
       {LOCALES.map((locale) => {
         const active = locale === current;
         return (

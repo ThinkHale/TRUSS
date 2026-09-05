@@ -11,19 +11,21 @@ export default function Loading() {
       <span className="sr-only">Loading</span>
 
       <div className="app-page-heading">
-        <Skeleton className="h-9 w-56 rounded-lg" />
+        <Skeleton className="skeleton-title w-56 rounded-lg" />
         <Skeleton className="mt-3 h-4 w-80 rounded" />
       </div>
 
-      <div className="flex gap-2.5 overflow-x-auto px-11 py-4">
+      {/* Same containers as the real screen, so the chips land in one row on a
+          desktop and in the 3x2 grid on a phone without the layout jumping. */}
+      <div className="coach-stages">
         {[72, 60, 68, 96, 64, 72].map((w, i) => (
-          <Skeleton key={i} className="h-10 shrink-0 rounded-full" style={{ width: w }} />
+          <Skeleton key={i} className="h-10 rounded-full" style={{ minWidth: w }} />
         ))}
       </div>
 
       <div className="min-h-0 flex-1" />
 
-      <div className="px-11 pb-6 pt-4">
+      <div className="coach-composer">
         <Skeleton className="h-12 w-full rounded-lg" />
       </div>
     </div>

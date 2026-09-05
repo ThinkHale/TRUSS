@@ -232,7 +232,15 @@
 .site-nav { display:flex; align-items:center; gap:26px; font-size:.86rem; font-weight:700; color:#fff; }
 .site-nav a { transition:color .2s; }
 .site-nav a:hover { color:var(--color-gold-300); }
-.site-nav>div { border-color:#ffffff55; }
+/* The language toggle is paper-first by default. On the navy headers — the
+   marketing bar and the phone app bar — its idle label has to come back up out
+   of the background, or the way out of a language you cannot read is invisible. */
+.site-nav .lang-toggle,
+.app-mobile-header .lang-toggle { border-color:#ffffff55; }
+.site-nav .lang-toggle button:not([aria-pressed='true']),
+.app-mobile-header .lang-toggle button:not([aria-pressed='true']) { color:#cbd8df; }
+.site-nav .lang-toggle button:not([aria-pressed='true']):hover,
+.app-mobile-header .lang-toggle button:not([aria-pressed='true']):hover { color:#fff; }
 .site-sign-in { border:1px solid #ffffffb0; padding:9px 17px; border-radius:2px; }
 .marketing-shell .site-icon { width:28px; height:28px; }
 .site-hero { position:relative; min-height:690px; width:100%; max-width:1440px; margin:auto; display:grid; grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr); border-bottom:1px solid #14202b1f; }
@@ -280,7 +288,17 @@
 
 /* ── Authenticated product shell ────────────────────────────────────────────
    Navy chrome framing a paper work area, matching the marketing site's
-   proportions so the two halves of the product read as one thing. */
+   proportions so the two halves of the product read as one thing.
+
+   The phone chrome measurements live here and nowhere else: the header band,
+   the tab bar, and the Coach work area that has to land flush between the two
+   all measure from them. */
+:root {
+  --app-header-h: 64px;
+  --app-tabbar-h: 56px;
+  --app-safe-b: env(safe-area-inset-bottom, 0px);
+}
+
 .app-frame { min-height:100vh; display:flex; }
 .app-mobile-header { display:none; }
 .app-sidebar { position:sticky; top:0; z-index:30; width:260px; height:100vh; flex-direction:column; padding:24px 14px 16px; color:#f8f7f3; background-color:var(--color-navy-900); background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px); background-size:38px 38px; border-right:1px solid #c8901c80; }
@@ -306,6 +324,9 @@
    with an action button next to it. */
 .app-page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:26px; }
 .app-page-head h1,.app-page-heading h1 { font-size:clamp(2rem,3.2vw,3rem); line-height:1.02; letter-spacing:-.045em; font-weight:800; }
+/* Tracks the h1 above so the placeholder does not resize when the real
+   heading lands. Both step down together on a phone. */
+.skeleton-title { height:clamp(2rem,3.2vw,3rem); }
 .app-page-head p,.app-page-heading p { margin-top:8px; color:var(--color-ink-500); font-size:.95rem; }
 .app-page-head>div:first-child { min-width:0; }
 .app-page-head>:last-child:not(:first-child) { flex-shrink:0; }
@@ -318,22 +339,77 @@
 .app-settings-page .card { padding:28px; }
 section.card + section.card { margin-top:20px; }
 
-/* Coach is the flagship screen: stronger spacing and a clearer work area. */
+/* Coach is the flagship screen: stronger spacing and a clearer work area.
+   Its parts are addressed by name rather than by utility class or child index,
+   because the phone layout rearranges them. */
 .coach-page { height:100vh; }
-.coach-page>div:nth-child(2)>div:first-child { background:#fbfaf7; }
-.coach-page .overflow-x-auto { padding:18px 44px; gap:10px; border-color:var(--color-line); }
-.coach-page .overflow-y-auto { padding:34px 44px; }
-.coach-page form { padding:18px 44px 24px; background:#fbfaf7e8; border-color:var(--color-line); -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px); }
-.coach-page form>div { max-width:980px; margin:auto; }
+.coach-stages { display:flex; gap:10px; overflow-x:auto; padding:18px 44px; border-bottom:1px solid var(--color-line); background:#fbfaf7; }
+.coach-scroll { padding:34px 44px; }
+.coach-composer { padding:18px 44px 24px; background:#fbfaf7e8; border-top:1px solid var(--color-line); -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px); }
+.coach-composer>div { max-width:980px; margin:auto; }
 .coach-page .max-w-2xl { max-width:760px; }
-.coach-empty { text-align:center; padding-top:clamp(30px,7vh,78px); }
-.coach-empty-mark { width:88px;height:88px;margin:0 auto 24px;display:grid;place-items:center;border:1px solid var(--color-line);border-radius:50%;background:#fff;color:var(--color-ink-700);box-shadow:0 12px 34px #102c3d12; }
-.coach-empty h2 { font-size:1.8rem;letter-spacing:-.035em; }
+.coach-empty { text-align:center; padding-top:clamp(24px,6vh,64px); }
+/* The production lockup is drawn white-on-dark, so it gets the navy plaque the
+   rest of the app chrome uses instead of disappearing into the paper. */
+.coach-empty-mark { display:inline-grid;place-items:center;margin:0 auto 22px;padding:16px 26px;border-radius:16px;border:1px solid #c8901c5c;background-color:var(--color-navy-900);background-image:linear-gradient(#ffffff0a 1px,transparent 1px),linear-gradient(90deg,#ffffff0a 1px,transparent 1px);background-size:22px 22px;box-shadow:0 14px 34px #102c3d24; }
+.coach-empty-logo { width:158px; }
+.coach-empty h2 { font-size:1.65rem;letter-spacing:-.035em; }
 .coach-empty p { max-width:560px;margin-left:auto;margin-right:auto; }
 .coach-empty button { display:flex;align-items:center;justify-content:space-between;gap:18px;border-radius:12px;background:#fff;box-shadow:0 8px 22px #102c3d08; }
 .coach-empty button span { color:var(--color-gold-500);font-size:1.25rem; }
 
-@media(max-width:1024px){.app-sidebar{width:228px}.app-sidebar-logo{width:172px}.app-page{padding-left:32px;padding-right:32px}.coach-page .overflow-x-auto,.coach-page .overflow-y-auto,.coach-page form,.app-page-heading{padding-left:32px;padding-right:32px}}
+@media(max-width:1024px){.app-sidebar{width:228px}.app-sidebar-logo{width:172px}.app-page{padding-left:32px;padding-right:32px}.coach-stages,.coach-scroll,.coach-composer,.app-page-heading{padding-left:32px;padding-right:32px}}
 @media(max-width:900px){.site-hero{grid-template-columns:minmax(0,1fr)}.site-hero-copy{padding:80px 24px 55px}.site-hero-scene{min-height:560px}.site-section-heading{grid-template-columns:1fr}.site-section-heading h2,.site-section-heading p{grid-column:1}.site-section-heading h2{margin-top:18px}.site-stage-rail{grid-template-columns:1fr;margin-top:55px}.site-stage-rail:before{top:0;bottom:0;left:18px;right:auto;width:3px;height:auto}.site-stage-rail li{display:grid;grid-template-columns:55px 1fr;border:0;padding:0 0 30px}.site-stage-rail li div{margin:0}.site-stage-rail li span{font-size:2rem}.site-product-featured,.site-product-pair,.site-enterprise{grid-template-columns:1fr}.site-chat-demo{margin:0 30px 40px}.site-product-pair .site-product{grid-template-columns:1fr;padding:40px 30px 0}.site-product-pair .site-product>div:first-child{padding-bottom:35px}.site-map{min-height:300px}.site-benefits{grid-template-columns:1fr!important}.site-benefits>div{border-right:0;border-bottom:1px solid #14202b21}.site-enterprise{gap:35px}}
-@media(max-width:767px){.site-header-inner{height:84px}.site-brand-logo{width:164px}.app-mobile-header{position:sticky;top:0;z-index:40;display:block;height:72px;background:#071c2ff5;border-bottom:1px solid #c8901c99;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}.app-mobile-logo{width:136px}.app-frame{min-height:calc(100vh - 72px)}.app-main{min-height:calc(100vh - 72px)}.app-page{padding:32px 20px 110px}.app-page-heading{padding:30px 20px 20px}.coach-page{height:calc(100vh - 144px)}.coach-page .overflow-x-auto{padding:14px 20px}.coach-page .overflow-y-auto{padding:24px 20px}.coach-page form{padding:12px 16px 18px}.card{padding:20px}}
-@media(max-width:600px){.site-header-inner{height:82px;padding:0 18px}.site-brand-logo{width:148px}.site-nav{gap:7px}.site-nav>div{display:none}.site-sign-in{display:inline-flex}.site-hero-copy{padding-top:64px}.site-hero h1{font-size:3.55rem;overflow-wrap:break-word}.site-hero-actions{gap:20px;flex-wrap:wrap}.site-proof{gap:8px;font-size:.56rem}.site-proof span+span:before{margin-right:8px}.site-phone-hero{width:260px;left:46%}.site-scene-note{right:10px;bottom:10px}.site-method,.site-workforce,.site-products{padding:80px 22px}.site-product-featured>div:first-child{padding:42px 28px}.site-chat-demo{margin:0 14px 25px}.site-product-pair{grid-template-columns:1fr}.site-enterprise{padding:70px 22px}.site-products{background-size:32px 32px}.site-footer-inner{flex-direction:column}.site-footer-links{flex-wrap:wrap}}
+/* ── Phone ──────────────────────────────────────────────────────────────────
+   One header band, one tab bar, and whatever is between them. Type and padding
+   step down from the desktop scale; touch targets do not, because the hand
+   holding the phone is often gloved. */
+@media(max-width:767px){
+  .site-header-inner{height:84px}
+  .site-brand-logo{width:164px}
+
+  /* The band is a fixed height, and the lockup is sized to fit inside it:
+     110px of a 2.06:1 lockup is 53px tall, so the tagline stops hanging below
+     the navy. Anything that grows the logo has to grow --app-header-h too. */
+  .app-mobile-header{position:sticky;top:0;z-index:40;display:block;height:var(--app-header-h);background:#071c2ff5;border-bottom:1px solid #c8901c99;-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+  .app-mobile-logo{width:110px}
+  .app-avatar{width:36px;height:36px;font-size:.72rem}
+  .app-mobile-header .lang-toggle button{padding:6px 8px;font-size:.7rem}
+  .app-mobile-nav a{height:var(--app-tabbar-h)}
+  .app-mobile-nav svg{width:19px;height:19px}
+
+  /* dvh so a retracting URL bar does not leave the app shell overhanging.
+     The vh line above it is the fallback for anything that lacks dvh. */
+  .app-frame{min-height:calc(100vh - var(--app-header-h));min-height:calc(100dvh - var(--app-header-h))}
+  .app-main{min-height:calc(100vh - var(--app-header-h));min-height:calc(100dvh - var(--app-header-h));padding-bottom:calc(var(--app-tabbar-h) + var(--app-safe-b))}
+
+  .app-page{padding:22px 18px 26px}
+  .app-page-head{margin-bottom:18px;flex-wrap:wrap;gap:14px}
+  .app-page-head h1,.app-page-heading h1{font-size:1.6rem}
+  .skeleton-title{height:1.6rem}
+  .app-page-head p,.app-page-heading p{margin-top:6px;font-size:.875rem}
+  .app-page-heading{padding:18px 18px 14px}
+  .card{padding:17px}
+  .app-settings-page .card{padding:18px}
+  section.card + section.card{margin-top:14px}
+
+  /* Exactly what is left between the two bars, so the composer sits on the
+     tab bar with no dead strip under it. */
+  .coach-page{height:calc(100vh - var(--app-header-h) - var(--app-tabbar-h) - var(--app-safe-b));height:calc(100dvh - var(--app-header-h) - var(--app-tabbar-h) - var(--app-safe-b))}
+  /* Six stages will not fit across a phone in one row, and a sideways scroll
+     buries the four in the middle. Two rows of three shows all of them. */
+  .coach-stages{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;overflow:visible;padding:11px 16px}
+  /* Narrow side padding is free here — the cells are wider than the labels on
+     any modern phone — and it is what keeps "Understand" on one line at 320px. */
+  .coach-stages button{min-height:38px;padding:6px 4px;font-size:.8125rem}
+  .coach-stages .truss-skeleton{min-width:0;height:38px}
+  .coach-scroll{padding:18px 16px}
+  .coach-composer{padding:10px 14px 14px}
+  .coach-empty{padding-top:10px}
+  .coach-empty-mark{margin-bottom:16px;padding:12px 18px;border-radius:14px}
+  .coach-empty-logo{width:124px}
+  .coach-empty h2{font-size:1.3rem}
+  .coach-empty p{font-size:.9rem}
+  .coach-empty button{gap:12px;padding:10px 14px}
+}
+@media(max-width:600px){.site-header-inner{height:82px;padding:0 18px}.site-brand-logo{width:148px}.site-nav{gap:7px}.site-nav .lang-toggle{display:none}.site-sign-in{display:inline-flex}.site-hero-copy{padding-top:64px}.site-hero h1{font-size:3.55rem;overflow-wrap:break-word}.site-hero-actions{gap:20px;flex-wrap:wrap}.site-proof{gap:8px;font-size:.56rem}.site-proof span+span:before{margin-right:8px}.site-phone-hero{width:260px;left:46%}.site-scene-note{right:10px;bottom:10px}.site-method,.site-workforce,.site-products{padding:80px 22px}.site-product-featured>div:first-child{padding:42px 28px}.site-chat-demo{margin:0 14px 25px}.site-product-pair{grid-template-columns:1fr}.site-enterprise{padding:70px 22px}.site-products{background-size:32px 32px}.site-footer-inner{flex-direction:column}.site-footer-links{flex-wrap:wrap}}

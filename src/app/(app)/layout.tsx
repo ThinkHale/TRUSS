@@ -14,12 +14,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const session = await getSessionContext();
   if (!session) redirect('/onboarding');
 
+  // dvh, not vh, on the shell: the Coach work area measures itself the same
+  // way, and a vh floor here would leave the shell taller than its own content
+  // while the phone's URL bar is showing.
   return (
-    <div className="app-shell min-h-screen">
+    <div className="app-shell min-h-dvh">
+      {/* The band is a fixed height and the lockup is sized to sit inside it —
+          see --app-header-h. Letting the logo drive the height instead lets the
+          tagline hang below the navy on a phone. */}
       <header className="app-mobile-header">
-        <div className="flex items-center justify-between px-4 py-2.5">
+        <div className="flex h-full items-center justify-between gap-3 px-3.5">
           <Link href="/coach" aria-label="TRUSS Coach">
-            <BrandLogo priority className="app-mobile-logo" />
+            <BrandLogo preload className="app-mobile-logo" />
           </Link>
           <div className="flex items-center gap-2">
             <LanguageToggle />
@@ -36,8 +42,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       <div className="app-frame">
         <AppNav orgName={session.orgName} />
-        {/* Bottom padding clears the phone nav bar. */}
-        <main className="app-main min-w-0 flex-1 pb-24 md:pb-8">{children}</main>
+        {/* Clearance for the phone tab bar is set in CSS, from the same
+            variable the tab bar and the Coach work area measure from. */}
+        <main className="app-main min-w-0 flex-1">{children}</main>
       </div>
     </div>
   );

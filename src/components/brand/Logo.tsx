@@ -1,8 +1,14 @@
+import Image from 'next/image';
+
 /**
  * The TRUSS mark.
  *
  * A truss: the triangulated structure that carries load without bending. It is
  * the roof itself, and it is what the methodology does for a sales conversation.
+ *
+ * This drawn mark is the fallback for places too small for the production
+ * lockup — favicons, dense list rows. Anywhere the brand is actually being
+ * presented, use BrandLogo instead.
  */
 
 export function TrussMark({ size = 32, className = '' }: { size?: number; className?: string }) {
@@ -56,13 +62,20 @@ export function Wordmark({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** The supplied production lockup, used on dark brand surfaces. */
+/**
+ * The supplied production lockup: gold truss over the wordmark over the
+ * tagline. It is drawn for dark surfaces — the wordmark is white — so on paper
+ * it needs a navy plaque behind it rather than being dropped straight on.
+ *
+ * Callers size it with `className`; the width set here is only the fallback.
+ */
 export function BrandLogo({
   className = '',
-  priority = false,
+  preload = false,
 }: {
   className?: string;
-  priority?: boolean;
+  /** Next 16 replaced `priority` with `preload`. */
+  preload?: boolean;
 }) {
   return (
     <Image
@@ -70,10 +83,9 @@ export function BrandLogo({
       alt="TRUSS — Sales intelligence for the Trades"
       width={1800}
       height={873}
-      priority={priority}
-      sizes="(max-width: 640px) 156px, 240px"
+      preload={preload}
+      sizes="(max-width: 767px) 200px, 260px"
       className={`h-auto w-60 object-contain ${className}`}
     />
   );
 }
-import Image from 'next/image';

@@ -29,7 +29,7 @@ export function PageSkeleton({
 
       <header className="app-page-head">
         <div className="w-full">
-          <Skeleton className="h-9 w-52 rounded-lg" />
+          <Skeleton className="skeleton-title w-52 rounded-lg" />
           <Skeleton className="mt-3 h-4 w-72 rounded" />
         </div>
         {action && <Skeleton className="h-12 w-36 rounded-lg" />}

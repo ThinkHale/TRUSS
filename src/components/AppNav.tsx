@@ -48,8 +48,11 @@ export function AppNav({ orgName }: { orgName: string }) {
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}
+                  // min-h-touch is the accessibility floor; the exact bar
+                  // height comes from --app-tabbar-h so the Coach work area
+                  // can subtract it and land flush.
                   className={cx(
-                    'flex min-h-touch flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold',
+                    'flex min-h-touch flex-col items-center justify-center gap-1 text-[11px] font-semibold',
                     active ? 'text-gold-600' : 'text-ink-500',
                   )}
                 >
@@ -65,7 +68,7 @@ export function AppNav({ orgName }: { orgName: string }) {
       {/* Desktop: sidebar */}
       <nav className="app-sidebar hidden shrink-0 md:flex" aria-label="Main">
         <Link href="/coach" className="app-sidebar-brand" aria-label="TRUSS Coach home">
-          <BrandLogo priority className="app-sidebar-logo" />
+          <BrandLogo preload className="app-sidebar-logo" />
         </Link>
         <ul className="app-sidebar-items space-y-1">
           {ITEMS.map((item) => {
