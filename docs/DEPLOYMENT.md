@@ -58,15 +58,55 @@ No key needed. `api.weather.gov` asks that requests identify themselves, so set
 Only needed for self-serve subscriptions; Enterprise tenants are billed offline and have
 their plan set directly on the `organizations` row.
 
-Create recurring prices for Pro and Team, then set `STRIPE_PRICE_PRO` and
-`STRIPE_PRICE_TEAM`. Add a webhook endpoint at `https://trusscoach.com/api/stripe/webhook`
-subscribed to:
+**Create two recurring prices.** The billing model differs between them, and getting this
+wrong in the dashboard is the most likely setup mistake:
+
+| Plan | Stripe price | Checkout sends | Seats |
+| --- | --- | --- | --- |
+| Pro | $49/month, **flat** | `quantity: 1` | 1 |
+| Team | $39/month, **per unit** | `quantity: <seats>`, minimum 2 | whatever they buy |
+
+Team must be a per-unit price. Checkout sends the seat count as the line item quantity, the
+buyer can adjust it inside Checkout, and the webhook reads the quantity back into the org's
+`seat_limit` — so a seat added later in the billing portal lands in TRUSS on the next event.
+The two-seat floor is what keeps Team ($78 minimum) above Pro ($49) while still costing less
+per head.
+
+Set `STRIPE_PRICE_PRO` and `STRIPE_PRICE_TEAM` to the price ids.
+
+**Add a webhook** at `https://trusscoach.com/api/stripe/webhook` subscribed to:
 
 - `checkout.session.completed`
+- `customer.subscription.created`
 - `customer.subscription.updated`
 - `customer.subscription.deleted`
+- `invoice.payment_failed`
 
 Put the signing secret in `STRIPE_WEBHOOK_SECRET`.
+
+**Enable the billing portal** in Stripe under Settings → Billing → Customer portal. Without
+it, `/api/stripe/portal` fails and customers have no way to change a card or cancel without
+emailing you.
+
+**Leave the variables blank rather than copying the placeholders from `.env.example`.** A
+value ending in `...` is treated as unset on purpose. This is defending against a real
+failure: the old check tested the raw string, and `"sk_test_..."` is a non-empty string, so a
+half-configured deployment reported billing as working and then failed inside Stripe with an
+authentication error instead of saying "not configured yet".
+
+To test locally, `stripe listen --forward-to localhost:3000/api/stripe/webhook` prints a
+signing secret that is *different* from the dashboard one — use that while listening.
+
+Redelivery is handled: every event id is claimed in `stripe_events` before any work happens,
+and a duplicate is answered 200 and dropped.
+
+## 5b. Platform operators
+
+Set `PLATFORM_ADMIN_EMAILS` to a comma-separated list of the people who should reach `/admin`.
+The first operator cannot be created inside the console, so this is the bootstrap and the way
+back in if `platform_admins` is ever emptied. Everyone after that is promoted from the console.
+
+See `docs/ADMIN.md`.
 
 ## 6. Hosting
 
@@ -93,6 +133,10 @@ platform with a shorter function timeout, either raise the limit or move those t
 - Start a practice session and confirm the browser asks for the microphone
 - Run one research lookup on a real address and confirm weather and storm data return
 - Switch to Español and confirm the interface follows
+- Open `/admin` as an address in `PLATFORM_ADMIN_EMAILS` and confirm the console loads
+- Subscribe with Stripe test card `4242 4242 4242 4242`, then confirm the org's plan changed
+- Open **Manage billing** and confirm the Stripe portal opens
+- Grant a test org Enterprise access in the console and confirm its Coach limit goes unlimited
 
 ## Cost notes
 

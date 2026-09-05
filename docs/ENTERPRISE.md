@@ -6,6 +6,10 @@ hear. This document is the onboarding path.
 
 Everything below is data. There is no per-customer fork of the codebase.
 
+> **There is now a console for most of this.** `/admin` does steps 1, 2, 5, and 6 without SQL —
+> see `docs/ADMIN.md`. The SQL below is still accurate, and is what the console runs. Steps 3
+> (loading their material) and 4 (authoring scenarios) remain API and SQL.
+
 ## 1. Create the organization
 
 ```sql
@@ -108,6 +112,9 @@ being treated well. A character that folds on the first good sentence teaches no
 
 ## 5. Add the team
 
+Easiest on the company page in `/admin`, which resolves the email to a user for you and
+enforces the seat limit. The underlying write is:
+
 ```sql
 insert into memberships (org_id, user_id, role) values ('<org-id>', '<user-id>', 'manager');
 ```
@@ -123,6 +130,11 @@ Managers can read practice sessions, transcripts, and scorecards for their team.
 **cannot** read Coach conversations, by design — reps will not ask honest questions if they
 believe their manager is reading them. This is worth stating plainly during rollout, because
 it is what makes the Coach useful.
+
+Neither can TRUSS itself. A platform operator reaches every tenant through Row Level Security
+rather than around it, and the policy on `coach_conversations` is `user_id = auth.uid()` — so
+the operator console shows Coach message *counts* and never message contents. If a customer's
+security review asks, that is the answer, and `docs/ADMIN.md` has the detail.
 
 ## 6. Branding
 

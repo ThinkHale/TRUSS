@@ -7,7 +7,10 @@ import { createServerClient } from '@supabase/ssr';
  * authenticates per route because it also needs the org context.
  */
 
-const PROTECTED_PREFIXES = ['/coach', '/practice', '/method', '/research', '/campaigns', '/accounts', '/settings'];
+const PROTECTED_PREFIXES = ['/coach', '/practice', '/method', '/research', '/campaigns', '/accounts', '/settings',
+  // /admin authorizes again in its own layout; this only ensures a signed-out
+  // visitor is sent to login rather than through a database round trip.
+  '/admin'];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

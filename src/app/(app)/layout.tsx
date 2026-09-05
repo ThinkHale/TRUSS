@@ -41,7 +41,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
 
       <div className="app-frame">
-        <AppNav orgName={session.orgName} />
+        <AppNav orgName={session.orgName} isPlatformAdmin={session.isPlatformAdmin} />
         {/* Clearance for the phone tab bar is set in CSS, from the same
             variable the tab bar and the Coach work area measure from. */}
         <main className="app-main min-w-0 flex-1">{children}</main>

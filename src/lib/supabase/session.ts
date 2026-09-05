@@ -7,6 +7,7 @@
 
 import { cache } from 'react';
 import { supabaseServer } from './server';
+import { effectivePlan, type PlanId } from '@/lib/billing/plans';
 import type { OrgContext } from '@/lib/ai/prompts';
 
 export interface SessionContext {
@@ -15,8 +16,20 @@ export interface SessionContext {
   orgId: string;
   orgName: string;
   role: 'owner' | 'admin' | 'manager' | 'rep';
-  plan: 'free' | 'pro' | 'team' | 'enterprise';
+  /**
+   * The plan actually in force, operator override included. Mirrors
+   * effective_plan() in migration 0008, which is what within_quota() enforces,
+   * so what a rep is told matches what they are allowed to do.
+   */
+  plan: PlanId;
+  /** What billing says, before any override. */
+  billedPlan: PlanId;
+  planOverride: PlanId | null;
+  overrideExpiresAt: string | null;
+  overrideReason: string | null;
   locale: 'en' | 'es';
+  /** Operator of TRUSS itself. Gates the admin console entry point. */
+  isPlatformAdmin: boolean;
 }
 
 /**
@@ -36,15 +49,20 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
   if (!claims?.sub) return null;
   const user = { id: claims.sub, email: claims.email ?? null };
 
-  // The profile row carries the active org; memberships carry the role. Both
+  // The profile row carries the active org; memberships carry the role; the
+  // platform_admins row says whether this user operates TRUSS itself. All three
   // are keyed off the user alone, so they go out together rather than in
-  // sequence — a rep belongs to one org in practice, so this stays small.
-  const [{ data: profile }, { data: memberships }] = await Promise.all([
+  // sequence — a rep belongs to one org in practice, so this stays small, and
+  // the operator check costs no extra round trip.
+  const [{ data: profile }, { data: memberships }, { data: operator }] = await Promise.all([
     supabase.from('profiles').select('active_org_id, locale').eq('id', user.id).single(),
     supabase
       .from('memberships')
-      .select('org_id, role, organizations(id, name, plan)')
+      .select(
+        'org_id, role, organizations(id, name, plan, plan_override, override_expires_at, override_reason)',
+      )
       .eq('user_id', user.id),
+    supabase.from('platform_admins').select('user_id').eq('user_id', user.id).maybeSingle(),
   ]);
 
   if (!profile?.active_org_id) return null;
@@ -55,7 +73,16 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
   const org = membership.organizations as unknown as {
     id: string;
     name: string;
-    plan: SessionContext['plan'];
+    plan: PlanId;
+    plan_override: PlanId | null;
+    override_expires_at: string | null;
+    override_reason: string | null;
+  };
+
+  const planState = {
+    plan: org.plan,
+    planOverride: org.plan_override,
+    overrideExpiresAt: org.override_expires_at,
   };
 
   return {
@@ -64,8 +91,13 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     orgId: org.id,
     orgName: org.name,
     role: membership.role as SessionContext['role'],
-    plan: org.plan,
+    plan: effectivePlan(planState),
+    billedPlan: org.plan,
+    planOverride: org.plan_override,
+    overrideExpiresAt: org.override_expires_at,
+    overrideReason: org.override_reason,
     locale: (profile.locale as 'en' | 'es') ?? 'en',
+    isPlatformAdmin: Boolean(operator),
   };
 });
 

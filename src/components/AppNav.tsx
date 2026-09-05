@@ -30,7 +30,7 @@ const ITEMS: NavItem[] = [
   { href: '/accounts', key: 'accounts', icon: <IconHome /> },
 ];
 
-export function AppNav({ orgName }: { orgName: string }) {
+export function AppNav({ orgName, isPlatformAdmin = false }: { orgName: string; isPlatformAdmin?: boolean }) {
   const pathname = usePathname();
   const t = useTranslations('nav');
 
@@ -91,6 +91,13 @@ export function AppNav({ orgName }: { orgName: string }) {
           })}
         </ul>
         <div className="app-sidebar-footer">
+          {/* Only rendered for operators, and /admin authorizes on its own —
+              this is a shortcut, not the gate. */}
+          {isPlatformAdmin && (
+            <Link href="/admin" className="app-admin-link">
+              Operations
+            </Link>
+          )}
           <Link href="/settings" className="app-org-link">
             <span>{(orgName || 'T').charAt(0).toUpperCase()}</span>
             <div><b>{orgName}</b><small>Settings</small></div>
