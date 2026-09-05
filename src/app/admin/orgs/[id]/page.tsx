@@ -6,6 +6,7 @@ import { PLANS, effectivePlan, type PlanId } from '@/lib/billing/plans';
 import { OrgPlanForm } from '@/components/admin/OrgPlanForm';
 import { OrgMembers, type Member } from '@/components/admin/OrgMembers';
 import { OrgSettingsForm, type OrgSettings } from '@/components/admin/OrgSettingsForm';
+import { OrgIdentityForm } from '@/components/admin/OrgIdentityForm';
 
 export const metadata: Metadata = { title: 'Company' };
 
@@ -138,6 +139,16 @@ export default async function AdminOrgDetail({
       />
 
       <OrgSettingsForm orgId={org.id} settings={(settings ?? null) as OrgSettings | null} />
+
+      <OrgIdentityForm
+        orgId={org.id}
+        name={org.name}
+        slug={org.slug}
+        hasLiveBilling={
+          Boolean(org.stripe_subscription_id) &&
+          ['active', 'trialing', 'past_due'].includes(org.subscription_status ?? '')
+        }
+      />
 
       <section className="admin-card">
         <h2>This month</h2>

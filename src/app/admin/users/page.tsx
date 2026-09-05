@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { supabaseServer } from '@/lib/supabase/server';
 import { getSessionContext } from '@/lib/supabase/session';
 import { OperatorToggle } from '@/components/admin/OperatorToggle';
@@ -13,6 +14,7 @@ interface UserRow {
   created_at: string;
   last_sign_in_at: string | null;
   is_operator: boolean;
+  orgs: { id: string; name: string; role: string; active: boolean }[];
 }
 
 export default async function AdminUsers({
@@ -34,8 +36,8 @@ export default async function AdminUsers({
     <div className="admin-page">
       <h1>People</h1>
       <p className="admin-sub">
-        Every account on the platform. Adding someone to a company is done on that company&apos;s
-        page.
+        Every account, and the company each one is with. Search matches an email, a name, or a
+        company — so a company name finds everybody at it.
       </p>
 
       <form className="admin-search" action="/admin/users" method="get">
@@ -43,7 +45,7 @@ export default async function AdminUsers({
           type="search"
           name="q"
           defaultValue={q ?? ''}
-          placeholder="Search by email or name"
+          placeholder="Search by email, name, or company"
           aria-label="Search people"
         />
         <button type="submit" className="admin-btn">
@@ -58,6 +60,7 @@ export default async function AdminUsers({
           <thead>
             <tr>
               <th>Person</th>
+              <th>Company</th>
               <th>Joined</th>
               <th>Last seen</th>
               <th>Operator</th>
@@ -67,8 +70,25 @@ export default async function AdminUsers({
             {users.map((user) => (
               <tr key={user.id}>
                 <td>
-                  <b>{user.full_name || user.email}</b>
+                  <Link href={`/admin/users/${user.id}`}>
+                    <b>{user.full_name || user.email}</b>
+                  </Link>
                   <small>{user.email}</small>
+                </td>
+                <td>
+                  {user.orgs.length === 0 ? (
+                    <small>no company</small>
+                  ) : (
+                    user.orgs.map((org) => (
+                      <div key={org.id}>
+                        <Link href={`/admin/orgs/${org.id}`}>{org.name}</Link>
+                        <small>
+                          {org.role}
+                          {org.active && user.orgs.length > 1 ? ' · active' : ''}
+                        </small>
+                      </div>
+                    ))
+                  )}
                 </td>
                 <td>{new Date(user.created_at).toLocaleDateString()}</td>
                 <td>
@@ -88,7 +108,7 @@ export default async function AdminUsers({
             ))}
             {users.length === 0 && (
               <tr>
-                <td colSpan={4} className="admin-empty">
+                <td colSpan={5} className="admin-empty">
                   Nobody matches.
                 </td>
               </tr>

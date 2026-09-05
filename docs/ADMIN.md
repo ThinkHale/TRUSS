@@ -60,10 +60,34 @@ not already grant, so it is not a new exposure. Everyone after the first is prom
 | --- | --- |
 | `/admin` | Tenant counts, billing that needs attention, configuration gaps |
 | `/admin/orgs` | Every company, searchable, with plan and billing state |
-| `/admin/orgs/[id]` | One tenant: plan, grants, people, company context, usage, history |
+| `/admin/orgs/[id]` | One tenant: plan, grants, people, context, identity, delete |
 | `/admin/orgs/new` | Create a tenant outright — the Enterprise path |
-| `/admin/users` | Every account; invite people; promote operators |
+| `/admin/users` | Every account and the company it is with; invite; promote |
+| `/admin/users/[id]` | One person: their companies, roles, active org, delete |
 | `/admin/audit` | Everything done with platform authority |
+
+**Both directions are covered.** The company page answers *who is at this
+company*; the person page answers *which company is this person with* — the
+direction you ask when a support email arrives from an address you do not
+recognise. Searching People by a company name returns everybody at it.
+
+Someone can hold membership in several companies. Only the one marked **active**
+is what their session reads, so a person whose active org was deleted needs
+moving on their person page or they land on onboarding instead of the Coach.
+
+## Renaming and deleting a company
+
+Both live at the bottom of the company page. Deleting cascades through every
+tenant table — accounts, Coach history, practice sessions, scorecards, knowledge
+base, usage — and there is no undo. Two guards, both enforced in SQL so the
+interface cannot skip them:
+
+- You must retype the company name exactly.
+- A company with a live Stripe subscription is refused. Cancel it in Stripe
+  first, or the card keeps being charged for an account that no longer exists.
+
+Deleting an account works the same way on the person page, and refuses while
+that person is still an operator — revoking that is its own audited step.
 
 ## Billed plan versus granted access
 
@@ -137,9 +161,30 @@ writes an `admin_audit_log` row **in the same transaction**. A change cannot hap
 audit row, because they commit together. Authority is checked in the database rather than in the
 route handler, so a bug in the application cannot skip it.
 
-Actions recorded: `org.create`, `org.set_plan`, `org.set_override`, `org.clear_override`,
-`member.add`, `member.set_role`, `member.remove`, `platform_admin.grant`,
+Actions recorded: `org.create`, `org.update`, `org.delete`, `org.set_plan`,
+`org.set_override`, `org.clear_override`, `member.add`, `member.set_role`,
+`member.remove`, `user.set_active_org`, `user.delete`, `platform_admin.grant`,
 `platform_admin.revoke`, `platform_admin.bootstrap`.
+
+`org.delete` and `user.delete` carry the id and name in their `detail` payload,
+because the foreign keys are `ON DELETE SET NULL` and the row they pointed at is
+gone by the time you read the log.
+
+## The operations plan
+
+Operators are on their own plan, `operations`, with the same unlimited
+entitlements as Enterprise. It is granted automatically — when someone is made
+an operator, and when the first one bootstraps from `PLATFORM_ADMIN_EMAILS`.
+
+This is not cosmetic. Before it existed, an operator's own company sat on `free`,
+which meant being held to 30 Coach messages a month while supporting customers.
+
+The bump only applies to a company currently on `free`, so an operator embedded
+in a paying or Enterprise tenant does not have that tenant's real plan
+overwritten. It is never sold: `planForPrice()` only ever returns `pro` or
+`team`, so no Stripe webhook can move a company onto it, and it is absent from
+the pricing page. Revoking operator access deliberately leaves the plan alone
+rather than silently dropping a company to free.
 
 ## Org roles, unchanged
 

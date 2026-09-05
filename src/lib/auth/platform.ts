@@ -88,6 +88,26 @@ export const reconcileBootstrapAdmin = cache(async (): Promise<boolean> => {
     return false;
   }
 
+  // admin_set_platform_admin() carries the plan bump with it, but the bootstrap
+  // cannot call that function — it requires already being an operator. Repeat
+  // the one thing it does, or the first operator is quota-limited to 30 Coach
+  // messages on a plan that says Free.
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('active_org_id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (profile?.active_org_id) {
+    await admin
+      .from('organizations')
+      .update({ plan: 'operations' })
+      .eq('id', profile.active_org_id)
+      // Scoped to free, so an operator sitting inside a paying tenant does not
+      // have that tenant's real plan overwritten.
+      .eq('plan', 'free');
+  }
+
   await admin.from('admin_audit_log').insert({
     actor_id: userId,
     actor_email: email,

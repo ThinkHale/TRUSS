@@ -8,7 +8,7 @@
  * from the database, because an Enterprise deal can move them without a deploy.
  */
 
-export const PLAN_IDS = ['free', 'pro', 'team', 'enterprise'] as const;
+export const PLAN_IDS = ['free', 'pro', 'team', 'enterprise', 'operations'] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
 
 /** Plans a customer can put themselves on through Stripe Checkout. */
@@ -94,6 +94,25 @@ export const PLANS: Record<PlanId, Plan> = {
     minSeats: TEAM_MIN_SEATS,
     featured: true,
   },
+  /**
+   * The plan the people running TRUSS are on. Never sold: planForPrice() only
+   * ever returns pro or team, so no Stripe webhook can move an org onto it, and
+   * PUBLIC_PLAN_ORDER leaves it off the pricing page. Granted automatically
+   * when someone is made an operator.
+   */
+  operations: {
+    id: 'operations',
+    name: 'Operations',
+    price: 'Internal',
+    cadence: null,
+    blurb: 'For the team running the platform.',
+    features: [
+      'Unlimited Coach, practice, and research',
+      'Every Enterprise capability',
+      'The operator console',
+    ],
+    seats: null,
+  },
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
@@ -114,7 +133,7 @@ export const PLANS: Record<PlanId, Plan> = {
 export const PUBLIC_PLAN_ORDER: PlanId[] = ['pro', 'team', 'enterprise'];
 
 /** Rank used to decide whether a change is an upgrade or a downgrade. */
-const RANK: Record<PlanId, number> = { free: 0, pro: 1, team: 2, enterprise: 3 };
+const RANK: Record<PlanId, number> = { free: 0, pro: 1, team: 2, enterprise: 3, operations: 4 };
 
 export function isUpgrade(from: PlanId, to: PlanId): boolean {
   return RANK[to] > RANK[from];

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { supabaseServer, supabaseAdmin } from '@/lib/supabase/server';
 import { isPlatformAdmin } from '@/lib/auth/platform';
+import { PLAN_IDS } from '@/lib/billing/plans';
 
 /**
  * Operator actions.
@@ -40,7 +41,7 @@ function explain(error: { code?: string; message?: string } | null, fallback: st
 
 const createOrgSchema = z.object({
   name: z.string().min(1).max(200),
-  plan: z.enum(['free', 'pro', 'team', 'enterprise']),
+  plan: z.enum(PLAN_IDS),
   seatLimit: z.number().int().min(1).max(100000).nullable(),
   trades: z.array(z.string().max(60)).max(20),
   serviceArea: z.array(z.string().max(120)).max(50),
@@ -76,7 +77,7 @@ export async function adminCreateOrganization(
 
 const setPlanSchema = z.object({
   orgId: z.string().uuid(),
-  plan: z.enum(['free', 'pro', 'team', 'enterprise']),
+  plan: z.enum(PLAN_IDS),
   seatLimit: z.number().int().min(1).max(100000).nullable(),
 });
 
@@ -103,7 +104,7 @@ export async function adminSetOrgPlan(input: z.input<typeof setPlanSchema>): Pro
 
 const overrideSchema = z.object({
   orgId: z.string().uuid(),
-  plan: z.enum(['free', 'pro', 'team', 'enterprise']).nullable(),
+  plan: z.enum(PLAN_IDS).nullable(),
   expiresAt: z.string().datetime().nullable(),
   reason: z.string().max(300).nullable(),
 });
@@ -137,6 +138,155 @@ export async function adminSetOverride(
 
   revalidatePath(`/admin/orgs/${parsed.data.orgId}`);
   revalidatePath('/admin/orgs');
+  return { ok: true };
+}
+
+const updateOrgSchema = z.object({
+  orgId: z.string().uuid(),
+  name: z.string().min(1).max(200),
+  slug: z.string().max(60).nullable(),
+});
+
+/** Renames a company, and optionally re-slugs it. */
+export async function adminUpdateOrganization(
+  input: z.input<typeof updateOrgSchema>,
+): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+
+  const parsed = updateOrgSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Check the name and try again.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_update_organization', {
+    p_org: parsed.data.orgId,
+    p_name: parsed.data.name,
+    p_slug: parsed.data.slug,
+  });
+
+  if (error) return { ok: false, message: explain(error, 'Could not rename the company.') };
+
+  revalidatePath(`/admin/orgs/${parsed.data.orgId}`);
+  revalidatePath('/admin/orgs');
+  return { ok: true };
+}
+
+const deleteOrgSchema = z.object({
+  orgId: z.string().uuid(),
+  confirmName: z.string().min(1).max(200),
+});
+
+/**
+ * Deletes a tenant and everything in it.
+ *
+ * Both guards live in SQL — the retyped name and the refusal to delete a
+ * company with live billing — so this wrapper cannot weaken them. There is no
+ * undo; every tenant table cascades.
+ */
+export async function adminDeleteOrganization(
+  input: z.input<typeof deleteOrgSchema>,
+): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+
+  const parsed = deleteOrgSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Type the company name to confirm.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_delete_organization', {
+    p_org: parsed.data.orgId,
+    p_confirm_name: parsed.data.confirmName,
+  });
+
+  if (error) return { ok: false, message: explain(error, 'Could not delete the company.') };
+
+  revalidatePath('/admin/orgs');
+  return { ok: true };
+}
+
+const activeOrgSchema = z.object({
+  userId: z.string().uuid(),
+  orgId: z.string().uuid(),
+});
+
+/** Moves which company a person lands in when they sign in. */
+export async function adminSetActiveOrg(
+  input: z.input<typeof activeOrgSchema>,
+): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+
+  const parsed = activeOrgSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Invalid request.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_set_active_org', {
+    p_user: parsed.data.userId,
+    p_org: parsed.data.orgId,
+  });
+
+  if (error) return { ok: false, message: explain(error, 'Could not move them.') };
+
+  revalidatePath(`/admin/users/${parsed.data.userId}`);
+  return { ok: true };
+}
+
+const deleteUserSchema = z.object({
+  userId: z.string().uuid(),
+  confirmEmail: z.string().min(1).max(320),
+});
+
+/**
+ * Deletes an account outright.
+ *
+ * Needs the Auth admin API — auth.users is not something SQL should be
+ * cascading by hand. profiles and memberships cascade from it. The typed-email
+ * confirmation is checked here rather than in SQL because the delete itself is
+ * not a database call, so there is no SECURITY DEFINER function to hold it.
+ */
+export async function adminDeleteUser(
+  input: z.input<typeof deleteUserSchema>,
+): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+
+  const parsed = deleteUserSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Type the email address to confirm.' };
+
+  const supabase = await supabaseServer();
+  const { data: rows, error: lookupError } = await supabase.rpc('admin_user_detail', {
+    p_user: parsed.data.userId,
+  });
+  if (lookupError) return { ok: false, message: explain(lookupError, 'Could not find that account.') };
+
+  const user = (rows as { email: string; is_operator: boolean }[] | null)?.[0];
+  if (!user) return { ok: false, message: 'No such account.' };
+
+  if (user.email.toLowerCase() !== parsed.data.confirmEmail.trim().toLowerCase()) {
+    return { ok: false, message: 'Type the email address exactly to confirm.' };
+  }
+  // Revoking operator access is a deliberate, audited step. Deleting the row
+  // out from under it would skip that record entirely.
+  if (user.is_operator) {
+    return { ok: false, message: 'Revoke their operator access first.' };
+  }
+
+  const { error } = await supabaseAdmin().auth.admin.deleteUser(parsed.data.userId);
+  if (error) {
+    console.error('admin delete user failed', { message: error.message });
+    return { ok: false, message: error.message };
+  }
+
+  // Written after the fact: the audit row references auth.users with
+  // ON DELETE SET NULL, so target_user would be blanked if logged before.
+  await supabase.rpc('log_admin_action', {
+    p_action: 'user.delete',
+    p_target_org: null,
+    p_target_user: null,
+    p_detail: { user_id: parsed.data.userId, email: user.email },
+  });
+
+  revalidatePath('/admin/users');
   return { ok: true };
 }
 

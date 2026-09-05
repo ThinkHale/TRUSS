@@ -46,8 +46,15 @@ export default async function AdminHome() {
 
   return (
     <div className="admin-page">
-      <h1>Operations</h1>
-      <p className="admin-sub">Every tenant on this deployment.</p>
+      <div className="admin-head">
+        <div>
+          <h1>Operations</h1>
+          <p className="admin-sub">Every tenant on this deployment.</p>
+        </div>
+        <Link href="/admin/orgs/new" className="admin-btn admin-btn-primary">
+          New company
+        </Link>
+      </div>
 
       {(!isStripeConfigured() || !hasBootstrapList()) && (
         <div className="admin-warn">
