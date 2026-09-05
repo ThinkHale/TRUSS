@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { STAGES, type StageId } from '@/lib/truss/methodology';
 import { STAGE_COLOR, cx } from '@/lib/truss/ui';
-import { BrandLogo } from '@/components/brand/Logo';
 import { PromptLibrary, PromptLibraryButton } from './PromptLibrary';
 
 /**
@@ -269,8 +268,9 @@ function EmptyState({
 
   return (
     <div className="coach-empty mx-auto max-w-2xl py-6">
-      {/* The lockup's wordmark is white, so it sits on navy rather than paper. */}
-      <div className="coach-empty-mark"><BrandLogo className="coach-empty-logo" /></div>
+      {/* No mark here. The lockup is already in the title bar a few pixels up,
+          and showing it twice on one screen reads as a mistake rather than as
+          branding. */}
       <h2 className="text-xl font-bold">{t('emptyTitle')}</h2>
       <p className="mt-2 text-ink-600">{t('emptyBody')}</p>
 
