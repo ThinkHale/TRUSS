@@ -51,7 +51,14 @@
     "allStages": "Todo",
     "sources": "De los materiales de tu compañía",
     "quotaTitle": "Se acabaron tus mensajes del Coach",
-    "quotaBody": "Tu plan se reinicia el mes que viene, o puedes mejorar tu plan."
+    "quotaBody": "Tu plan se reinicia el mes que viene, o puedes mejorar tu plan.",
+    "libraryTitle": "Biblioteca de preguntas",
+    "libraryHint": "Encuentra tu situación. Nosotros escribimos la pregunta.",
+    "librarySearch": "Buscar — deducible, ajustador, ya firmaron…",
+    "libraryAll": "Todo",
+    "libraryNoMatch": "No hay nada así. Prueba con una palabra más corta o elige una categoría arriba.",
+    "libraryClose": "Cerrar",
+    "libraryOpenHint": "¿No sabes qué preguntar?"
   },
   "practice": {
     "title": "Práctica",

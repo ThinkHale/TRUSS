@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { STAGES, type StageId } from '@/lib/truss/methodology';
 import { STAGE_COLOR, cx } from '@/lib/truss/ui';
 import { BrandLogo } from '@/components/brand/Logo';
+import { PromptLibrary, PromptLibraryButton } from './PromptLibrary';
 
 /**
  * The Coach conversation.
@@ -35,6 +36,7 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
   const [error, setError] = useState<string | null>(null);
   const [citations, setCitations] = useState<string[]>([]);
   const [stageFocus, setStageFocus] = useState<StageId | null>(initialStage);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const conversationId = useRef(initialConversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -129,6 +131,27 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
     }
   }
 
+  /**
+   * A library pick lands in the composer rather than sending.
+   *
+   * The rep sees the question before it goes, which is how they learn what a
+   * good one looks like, and they can add the one detail only they have. The
+   * stage filter moves with it — visibly, since the chips are right there.
+   */
+  function usePrompt(prompt: string, stage: StageId | null) {
+    setInput(prompt);
+    if (stage) setStageFocus(stage);
+    setLibraryOpen(false);
+    // After the sheet unmounts, so focus is not stolen back as its close
+    // button leaves the document.
+    requestAnimationFrame(() => {
+      const el = textareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    });
+  }
+
   const empty = messages.length === 0;
 
   return (
@@ -154,7 +177,7 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
 
       <div ref={scrollRef} className="coach-scroll min-h-0 flex-1 overflow-y-auto">
         {empty ? (
-          <EmptyState onPick={send} />
+          <EmptyState onPick={send} onBrowse={() => setLibraryOpen(true)} />
         ) : (
           <div className="mx-auto max-w-2xl space-y-4">
             {messages.map((message, i) => (
@@ -190,6 +213,7 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
         className="coach-composer"
       >
         <div className="mx-auto flex max-w-2xl items-end gap-2">
+          <PromptLibraryButton onClick={() => setLibraryOpen(true)} />
           <textarea
             ref={textareaRef}
             value={input}
@@ -223,11 +247,23 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
           </button>
         </div>
       </form>
+
+      <PromptLibrary
+        open={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onPick={usePrompt}
+      />
     </div>
   );
 }
 
-function EmptyState({ onPick }: { onPick: (text: string) => void }) {
+function EmptyState({
+  onPick,
+  onBrowse,
+}: {
+  onPick: (text: string) => void;
+  onBrowse: () => void;
+}) {
   const t = useTranslations('coach');
   const suggestions = ['objection', 'deductible', 'adjuster', 'opener'] as const;
 
@@ -253,6 +289,12 @@ function EmptyState({ onPick }: { onPick: (text: string) => void }) {
             </button>
           );
         })}
+      </div>
+
+      {/* The four suggestions above are a taste; this is the whole shelf. */}
+      <div className="coach-empty-browse">
+        <p>{t('libraryOpenHint')}</p>
+        <PromptLibraryButton onClick={onBrowse} variant="wide" />
       </div>
     </div>
   );

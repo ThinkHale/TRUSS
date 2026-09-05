@@ -51,7 +51,14 @@
     "allStages": "Everything",
     "sources": "From your company material",
     "quotaTitle": "You are out of Coach messages",
-    "quotaBody": "Your plan resets at the start of next month, or you can upgrade."
+    "quotaBody": "Your plan resets at the start of next month, or you can upgrade.",
+    "libraryTitle": "Prompt library",
+    "libraryHint": "Find your situation. We will write the question.",
+    "librarySearch": "Search — deductible, adjuster, already signed…",
+    "libraryAll": "Everything",
+    "libraryNoMatch": "Nothing matches that. Try a shorter word, or pick a category above.",
+    "libraryClose": "Close",
+    "libraryOpenHint": "Not sure what to ask?"
   },
   "practice": {
     "title": "Practice",
