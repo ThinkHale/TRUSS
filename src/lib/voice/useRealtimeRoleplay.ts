@@ -77,6 +77,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const pendingRef = useRef<Turn[]>([]);
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const meterRef = useRef<{ ctx: AudioContext; raf: number } | null>(null);
+  const startGenRef = useRef(0);
 
   const { onTurn, onError } = options;
 
@@ -186,6 +187,17 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
 
   const start = useCallback(
     async (scenarioId: string): Promise<string | null> => {
+      // Close anything already running first. Without this a second start
+      // leaves the previous peer connection open and streaming: both sessions
+      // answer the same microphone, and because each scenario carries its own
+      // voice, the character appears to change voice between replies.
+      teardown();
+
+      // A start that gets overtaken while it is still awaiting must not go on
+      // to install its connection over the newer one.
+      const generation = ++startGenRef.current;
+      const superseded = () => startGenRef.current !== generation;
+
       setError(null);
       setTurns([]);
       pendingRef.current = [];
@@ -201,6 +213,10 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
             autoGainControl: true,
           },
         });
+        if (superseded()) {
+          stream.getTracks().forEach((track) => track.stop());
+          return null;
+        }
         streamRef.current = stream;
       } catch {
         fail('mic-denied');
@@ -231,6 +247,8 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         fail('session-failed');
         return null;
       }
+
+      if (superseded()) return null;
 
       sessionIdRef.current = credential.sessionId;
       startedAtRef.current = Date.now();
@@ -290,6 +308,11 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         if (!res.ok) throw new Error('sdp-exchange-failed');
 
         await pc.setRemoteDescription({ type: 'answer', sdp: await res.text() });
+
+        if (superseded()) {
+          pc.close();
+          return null;
+        }
 
         setState('listening');
         flushTimerRef.current = setInterval(() => void flush(), FLUSH_INTERVAL_MS);
