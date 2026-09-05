@@ -108,11 +108,12 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
 
     const batch = pendingRef.current.splice(0, pendingRef.current.length);
     try {
-      await fetch('/api/practice/turns', {
+      const response = await fetch('/api/practice/turns', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, turns: batch }),
       });
+      if (!response.ok) throw new Error('transcript_save_failed');
     } catch {
       // Put them back so the next flush tries again.
       pendingRef.current.unshift(...batch);
@@ -176,6 +177,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
    * turn. Nothing is transmitted while the gate is shut, so there is no audio
    * for the far end to mistake for speech.
    */
+  const gateMicRef = useRef<((gated: boolean) => void) | null>(null);
   const gateMic = useCallback((gated: boolean) => {
     setMicGated(gated);
 
@@ -196,8 +198,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     if (!track) return;
     track.enabled = gated ? false : !manualMuteRef.current;
   }, []);
-  const gateMicRef = useRef<typeof gateMic | null>(null);
-  gateMicRef.current = gateMic;
+  useEffect(() => { gateMicRef.current = gateMic; }, [gateMic]);
 
   const teardown = useCallback(() => {
     setMicGated(false);
@@ -371,7 +372,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
       } catch {
         teardown();
         fail('connection-failed');
-        return null;
+        return credential.sessionId;
       }
 
       function handleServerEvent(raw: string) {

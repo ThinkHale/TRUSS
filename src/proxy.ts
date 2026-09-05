@@ -7,7 +7,7 @@ import { createServerClient } from '@supabase/ssr';
  * authenticates per route because it also needs the org context.
  */
 
-const PROTECTED_PREFIXES = ['/coach', '/practice', '/research', '/campaigns', '/accounts', '/settings'];
+const PROTECTED_PREFIXES = ['/coach', '/practice', '/method', '/research', '/campaigns', '/accounts', '/settings'];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -42,7 +42,9 @@ export async function proxy(request: NextRequest) {
     const login = request.nextUrl.clone();
     login.pathname = '/login';
     login.searchParams.set('next', path);
-    return NextResponse.redirect(login);
+    const redirect = NextResponse.redirect(login);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
   }
 
   // Signed-in reps land on the Coach, not the marketing page.
@@ -50,7 +52,9 @@ export async function proxy(request: NextRequest) {
     const app = request.nextUrl.clone();
     app.pathname = '/coach';
     app.search = '';
-    return NextResponse.redirect(app);
+    const redirect = NextResponse.redirect(app);
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
   }
 
   return response;

@@ -77,10 +77,13 @@ export async function POST(req: NextRequest) {
 
   const supabase = await supabaseServer();
 
-  const { data: allowed } = await supabase.rpc('within_quota', {
+  const { data: allowed, error: quotaError } = await supabase.rpc('within_quota', {
     target_org: session.orgId,
     event_kind: 'practice_seconds',
   });
+  if (quotaError || allowed === null) {
+    return Response.json({ error: 'Could not check usage. Please try again.' }, { status: 503 });
+  }
   if (allowed === false) {
     return Response.json(
       { error: 'quota_exceeded', message: 'You have used all your practice minutes this month.' },

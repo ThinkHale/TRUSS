@@ -47,10 +47,13 @@ export async function POST(req: NextRequest) {
   const supabase = await supabaseServer();
 
   // Quota is checked before spending a token, not after.
-  const { data: allowed } = await supabase.rpc('within_quota', {
+  const { data: allowed, error: quotaError } = await supabase.rpc('within_quota', {
     target_org: session.orgId,
     event_kind: 'coach_message',
   });
+  if (quotaError || allowed === null) {
+    return Response.json({ error: 'Could not check usage. Please try again.' }, { status: 503 });
+  }
   if (allowed === false) {
     return Response.json(
       { error: 'quota_exceeded', message: 'You have used all your Coach messages this month.' },
@@ -89,19 +92,26 @@ export async function POST(req: NextRequest) {
   const priorTurns = (history ?? []).reverse();
 
   // Enterprise context plus anything relevant from the tenant's own material.
-  const orgContext = await loadOrgContext(session);
-  orgContext.knowledge = await retrieveKnowledge(session.orgId, message);
+  const [orgContext, knowledge] = await Promise.all([
+    loadOrgContext(session),
+    retrieveKnowledge(session.orgId, message),
+  ]);
+  orgContext.knowledge = knowledge;
 
   const system = stageFocus
     ? stageCoachPrompt(stageFocus, orgContext)
     : coachSystemPrompt(orgContext);
 
-  await supabase.from('coach_messages').insert({
+  const { error: messageError } = await supabase.from('coach_messages').insert({
     conversation_id: conversationId,
     org_id: session.orgId,
     role: 'user',
     content: message,
   });
+
+  if (messageError) {
+    return Response.json({ error: 'Could not save your message. Please try again.' }, { status: 500 });
+  }
 
   const stream = await openai().chat.completions.create({
     model: MODELS.coach,

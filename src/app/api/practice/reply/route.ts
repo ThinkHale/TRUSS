@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     .from('practice_turns')
     .select('role, text')
     .eq('session_id', sessionId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
     .limit(HISTORY_LIMIT);
 
   const orgContext = await loadOrgContext(session);
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     max_tokens: 160,
     messages: [
       { role: 'system', content: roleplayCharacterPrompt(scenario, orgContext) },
-      ...(history ?? []).map((t) => ({
+      ...(history ?? []).reverse().map((t) => ({
         role: (t.role === 'rep' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: t.text,
       })),

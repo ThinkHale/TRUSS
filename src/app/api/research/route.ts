@@ -37,10 +37,13 @@ export async function POST(req: NextRequest) {
   const { query, radiusMiles, includeCommercial } = parsed.data;
   const supabase = await supabaseServer();
 
-  const { data: allowed } = await supabase.rpc('within_quota', {
+  const { data: allowed, error: quotaError } = await supabase.rpc('within_quota', {
     target_org: session.orgId,
     event_kind: 'research_brief',
   });
+  if (quotaError || allowed === null) {
+    return Response.json({ error: 'Could not check usage. Please try again.' }, { status: 503 });
+  }
   if (allowed === false) {
     return Response.json(
       { error: 'quota_exceeded', message: 'You have used all your research briefs this month.' },

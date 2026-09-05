@@ -18,7 +18,7 @@ export interface ScenarioSummary {
   focusStages: StageId[];
 }
 
-type Phase = 'choosing' | 'live' | 'scoring' | 'scored';
+type Phase = 'starting' | 'choosing' | 'live' | 'scoring' | 'scored';
 
 /**
  * The practice surface.
@@ -43,7 +43,9 @@ export function PracticeRoom({
   const [scorecard, setScorecard] = useState<ScorecardData | null>(null);
   const [scoreError, setScoreError] = useState<string | null>(null);
   const [fallback, setFallback] = useState(false);
+  const [textOnly, setTextOnly] = useState(false);
 
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const sessionIdRef = useRef<string | null>(null);
 
   const realtime = useRealtimeRoleplay({
@@ -55,40 +57,57 @@ export function PracticeRoom({
     },
   });
 
-  const ptt = usePushToTalk(sessionIdRef.current);
+  const ptt = usePushToTalk(sessionId);
 
   const begin = useCallback(
     async (chosen: ScenarioSummary) => {
+      ptt.reset();
+      setSessionId(null);
+      sessionIdRef.current = null;
       setScenario(chosen);
       setScorecard(null);
       setScoreError(null);
       setFallback(false);
+      setTextOnly(false);
       setPhase('live');
 
       const sessionId = await realtime.start(chosen.id);
       sessionIdRef.current = sessionId;
+      setSessionId(sessionId);
     },
-    [realtime],
+    [realtime, ptt],
   );
 
   /** Starts a text-only session, for a rep who cannot talk out loud right now. */
   const beginText = useCallback(async (chosen: ScenarioSummary) => {
+    ptt.reset();
+    setSessionId(null);
+    sessionIdRef.current = null;
     setScenario(chosen);
     setScorecard(null);
     setScoreError(null);
-    setPhase('live');
+    setTextOnly(true);
+    setPhase('starting');
     setFallback(true);
-
-    const res = await fetch('/api/practice/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scenarioId: chosen.id, mode: 'text' }),
-    });
-    const data = await res.json();
-    sessionIdRef.current = data.sessionId ?? null;
-  }, []);
+    try {
+      const res = await fetch('/api/practice/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId: chosen.id, mode: 'text' }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.sessionId) throw new Error(data.message ?? data.error ?? t('connectFailed'));
+      sessionIdRef.current = data.sessionId;
+      setSessionId(data.sessionId);
+      setPhase('live');
+    } catch (err) {
+      setScoreError(err instanceof Error ? err.message : t('connectFailed'));
+      setPhase('scored');
+    }
+  }, [ptt, t]);
 
   const finish = useCallback(async () => {
+    ptt.stop();
     realtime.stop();
     const sessionId = sessionIdRef.current;
     if (!sessionId) {
@@ -122,7 +141,9 @@ export function PracticeRoom({
       setScoreError(tc('retry'));
       setPhase('scored');
     }
-  }, [realtime, t, tc]);
+  }, [realtime, ptt, t, tc]);
+
+  if (phase === 'starting') return <p role="status" className="py-20 text-center">{t('connecting')}</p>;
 
   if (phase === 'choosing') {
     return (
@@ -152,7 +173,7 @@ export function PracticeRoom({
             <p className="font-semibold text-nogo">{scoreError}</p>
           </div>
         ) : scorecard ? (
-          <Scorecard data={scorecard} transcript={realtime.turns} />
+          <Scorecard data={scorecard} transcript={fallback ? [...realtime.turns, ...ptt.turns] : realtime.turns} />
         ) : null}
 
         <div className="mt-5 flex gap-2">
@@ -173,6 +194,7 @@ export function PracticeRoom({
       realtime={realtime}
       ptt={ptt}
       fallback={fallback}
+      textOnly={textOnly}
       onFinish={finish}
     />
   );
@@ -265,30 +287,34 @@ function LiveSession({
   realtime,
   ptt,
   fallback,
+  textOnly,
   onFinish,
 }: {
   scenario: ScenarioSummary;
   realtime: ReturnType<typeof useRealtimeRoleplay>;
   ptt: ReturnType<typeof usePushToTalk>;
   fallback: boolean;
+  textOnly: boolean;
   onFinish: () => void;
 }) {
+  const { audioRef, ...live } = realtime;
   const t = useTranslations('practice');
   const [typed, setTyped] = useState('');
 
-  const micDenied = realtime.error === 'mic-denied';
-  const speaking = realtime.state === 'speaking';
-  const connecting = realtime.state === 'connecting' || realtime.state === 'requesting-mic';
+  const micDenied = live.error === 'mic-denied';
+  const speaking = live.state === 'speaking';
+  const connecting = live.state === 'connecting' || live.state === 'requesting-mic';
   // Anything that failed for a reason the rep cannot act on. Without this the
   // screen falls through to "your turn" and invites them to talk to nothing.
-  const failed = realtime.state === 'error' && !micDenied && !fallback;
+  const failed = live.state === 'error' && !micDenied && !fallback;
 
-  const turns = fallback ? ptt.turns : realtime.turns;
+  const turns = fallback ? [...live.turns, ...ptt.turns] : live.turns;
+  const busy = ptt.state === 'recording' || ptt.state === 'sending' || ptt.state === 'playing';
 
   return (
     <div className="mt-5">
       {/* Character audio. Controls stay available in case autoplay is blocked. */}
-      <audio ref={realtime.audioRef} autoPlay playsInline className="sr-only" />
+      <audio ref={audioRef} autoPlay playsInline className="sr-only" />
 
       <section className="card">
         <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">
@@ -304,7 +330,7 @@ function LiveSession({
         </div>
       )}
 
-      {fallback && !micDenied && (
+      {fallback && !textOnly && !micDenied && (
         <div role="status" className="card mt-4 border-line-strong bg-surface">
           <p className="text-sm text-ink-600">{t('connectionLost')}</p>
         </div>
@@ -361,18 +387,18 @@ function LiveSession({
               role="meter"
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={realtime.micGated ? 0 : Math.round(realtime.inputLevel * 100)}
+              aria-valuenow={live.micGated ? 0 : Math.round(live.inputLevel * 100)}
               aria-label={t('micLevel')}
             >
               <div
                 className="h-full rounded-full transition-[width] duration-100"
                 style={{
-                  width: realtime.micGated
+                  width: live.micGated
                     ? '100%'
-                    : `${Math.min(100, Math.round(realtime.inputLevel * 180))}%`,
-                  backgroundColor: realtime.micGated
+                    : `${Math.min(100, Math.round(live.inputLevel * 180))}%`,
+                  backgroundColor: live.micGated
                     ? 'var(--color-gold-500)'
-                    : realtime.inputLevel > 0.04
+                    : live.inputLevel > 0.04
                       ? 'var(--color-go)'
                       : 'var(--color-ink-400)',
                 }}
@@ -381,25 +407,27 @@ function LiveSession({
             <p className="mt-1.5 text-center text-xs text-ink-400">
               {/* While the gate is shut the meter reads zero by design, so say
                   so rather than let it look like a dead microphone. */}
-              {realtime.micGated
+              {live.micGated
                 ? t('micHeld')
-                : realtime.muted
+                : live.muted
                   ? t('muted')
-                  : realtime.inputLevel > 0.04
+                  : live.inputLevel > 0.04
                     ? t('micLive')
                     : t('micQuiet')}
             </p>
           </div>
         )}
 
-        {realtime.audioBlocked && (
-          <button type="button" className="btn-ghost mt-4" onClick={realtime.resumeAudio}>
+        {live.audioBlocked && (
+          <button type="button" className="btn-ghost mt-4" onClick={live.resumeAudio}>
             {t('tapToHear')}
           </button>
         )}
 
         <p className="mt-3 max-w-xs text-center text-xs text-ink-400">{t('micHelp')}</p>
       </div>
+
+      {fallback && ptt.error && <p role="alert" className="mb-4 text-nogo">{ptt.error === 'mic-denied' ? t('micDenied') : ptt.error}</p>}
 
       {/* Hold-to-talk controls, shown only on the fallback path. */}
       {fallback && (
@@ -416,6 +444,7 @@ function LiveSession({
             onPointerDown={() => void ptt.startRecording()}
             onPointerUp={() => ptt.stopRecording()}
             onPointerLeave={() => ptt.stopRecording()}
+            onPointerCancel={() => ptt.stopRecording()}
           >
             {ptt.state === 'recording'
               ? t('listening')
@@ -430,7 +459,7 @@ function LiveSession({
             className="flex w-full max-w-md gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (!typed.trim()) return;
+              if (!typed.trim() || busy) return;
               void ptt.sendText(typed);
               setTyped('');
             }}
@@ -442,7 +471,7 @@ function LiveSession({
               placeholder="…"
               aria-label={t('startText')}
             />
-            <button type="submit" className="btn-secondary px-5" disabled={!typed.trim()}>
+            <button type="submit" className="btn-secondary px-5" disabled={!typed.trim() || busy}>
               →
             </button>
           </form>
@@ -474,7 +503,7 @@ function LiveSession({
       )}
 
       <div className="sticky bottom-24 mt-8 md:bottom-6">
-        <button type="button" className="btn-secondary w-full text-base" onClick={onFinish}>
+        <button type="button" className="btn-secondary w-full text-base" disabled={busy} onClick={onFinish}>
           {t('end')}
         </button>
       </div>

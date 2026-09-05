@@ -16,7 +16,7 @@ import { BrandLogo } from '@/components/brand/Logo';
 
 interface NavItem {
   href: string;
-  key: 'coach' | 'practice' | 'research' | 'campaigns' | 'accounts';
+  key: 'coach' | 'practice' | 'research' | 'campaigns' | 'accounts' | 'method';
   icon: React.ReactNode;
   primary?: boolean;
 }
@@ -24,6 +24,7 @@ interface NavItem {
 const ITEMS: NavItem[] = [
   { href: '/coach', key: 'coach', primary: true, icon: <IconCoach /> },
   { href: '/practice', key: 'practice', icon: <IconMic /> },
+  { href: '/method', key: 'method', icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M12 5v16M12 5C9 3 5 3 2 4v15c3-1 7-1 10 2 3-3 7-3 10-2V4c-3-1-7-1-10 1Z" strokeLinejoin="round" /></svg> },
   { href: '/research', key: 'research', icon: <IconMap /> },
   { href: '/campaigns', key: 'campaigns', icon: <IconMegaphone /> },
   { href: '/accounts', key: 'accounts', icon: <IconHome /> },
@@ -44,7 +45,7 @@ export function AppNav({ orgName }: { orgName: string }) {
           {ITEMS.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
-              <li key={item.href} className="flex-1">
+              <li key={item.href} className="min-w-0 flex-1">
                 <Link
                   href={item.href}
                   aria-current={active ? 'page' : undefined}

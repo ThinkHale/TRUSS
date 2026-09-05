@@ -2,12 +2,12 @@
   "name": "truss",
   "version": "0.1.0",
   "private": true,
-  "description": "TRUSS — Sales intelligence for the Trades",
+  "description": "TRUSS \u2014 Sales intelligence for the Trades",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -26,6 +26,8 @@
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.3.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.0"
   }

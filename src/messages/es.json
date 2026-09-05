@@ -11,7 +11,8 @@
     "campaigns": "Campañas",
     "accounts": "Cuentas",
     "settings": "Ajustes",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "method": "Método"
   },
   "common": {
     "loading": "Trabajando…",
@@ -158,7 +159,7 @@
     "coachTitle": "Un coach que conoce los oficios",
     "coachBody": "Reclamos de seguro, deducibles, ajustadores, estafadores de tormenta. TRUSS Coach conoce el trabajo porque fue hecho para eso.",
     "researchTitle": "Conoce el clima y el historial de tormentas",
-    "researchBody": "Mira dónde cayó el granizo, si todavía se puede reclamar, y si tus cuadrillas pueden trabajar esta semana.",
+    "researchBody": "Consulta los pronósticos disponibles, reportes de tormentas cercanas y propiedades comerciales antes de planear tu próxima visita.",
     "enterpriseTitle": "Empresas: tu manual, tu TRUSS",
     "enterpriseBody": "Cargamos tu entrenamiento, tu proceso, tus reglas de precios y tus políticas. Tus vendedores aprenden a vender como tu compañía vende.",
     "enterpriseCta": "Hablemos",

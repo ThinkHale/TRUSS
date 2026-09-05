@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
  * Hold-to-talk fallback for the roleplay.
@@ -31,16 +31,51 @@ export function usePushToTalk(sessionId: string | null) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const busyRef = useRef(false);
+  const heldRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const stop = useCallback(() => {
+    heldRef.current = false;
+    abortRef.current?.abort();
+    abortRef.current = null;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+    if (recorderRef.current) {
+      recorderRef.current.onstop = null;
+      if (recorderRef.current.state === 'recording') recorderRef.current.stop();
+    }
+    recorderRef.current = null;
+    streamRef.current?.getTracks().forEach(track => track.stop());
+    streamRef.current = null;
+    audioRef.current?.pause();
+    audioRef.current = null;
+    busyRef.current = false;
+  }, []);
+
+  useEffect(() => stop, [stop]);
+
+  const reset = useCallback(() => {
+    stop();
+    setTurns([]);
+    setError(null);
+    setState('idle');
+  }, [stop]);
+
   const send = useCallback(
     async (payload: FormData) => {
-      if (!sessionId) return;
+      if (!sessionId || busyRef.current) return;
+      busyRef.current = true;
+      const controller = new AbortController();
+      abortRef.current = controller;
       setState('sending');
       setError(null);
 
       try {
         payload.set('sessionId', sessionId);
-        const res = await fetch('/api/practice/reply', { method: 'POST', body: payload });
+        const res = await fetch('/api/practice/reply', { method: 'POST', body: payload, signal: controller.signal });
         const data = await res.json();
+        if (controller.signal.aborted) return;
 
         if (!res.ok) throw new Error(data.message ?? data.error ?? 'reply_failed');
 
@@ -61,21 +96,42 @@ export function usePushToTalk(sessionId: string | null) {
           setState('idle');
         }
       } catch (err) {
+        if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : 'reply_failed');
         setState('error');
+      } finally {
+        if (abortRef.current === controller) busyRef.current = false;
       }
     },
     [sessionId],
   );
 
+  const stopRecording = useCallback(() => {
+    heldRef.current = false;
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (recorderRef.current?.state === 'recording') {
+      recorderRef.current.stop();
+    }
+    recorderRef.current = null;
+  }, []);
+
+
   const startRecording = useCallback(async () => {
-    if (state === 'recording' || state === 'sending') return;
+    if (!sessionId || heldRef.current || busyRef.current || state === 'playing') return;
+    heldRef.current = true;
     setError(null);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: true },
       });
+      if (!heldRef.current) {
+        stream.getTracks().forEach(track => track.stop());
+        return;
+      }
       streamRef.current = stream;
 
       // Let the browser choose a container it can actually produce; Safari and
@@ -114,21 +170,14 @@ export function usePushToTalk(sessionId: string | null) {
       // Hard stop so a stuck button does not record forever.
       timeoutRef.current = setTimeout(() => stopRecording(), MAX_CLIP_MS);
     } catch {
+      heldRef.current = false;
+      streamRef.current?.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
       setError('mic-denied');
       setState('error');
     }
-  }, [send, state]);
+  }, [send, state, sessionId, stopRecording]);
 
-  const stopRecording = useCallback(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-    if (recorderRef.current?.state === 'recording') {
-      recorderRef.current.stop();
-    }
-    recorderRef.current = null;
-  }, []);
 
   /** Typed input, for a rep who cannot speak out loud where they are. */
   const sendText = useCallback(
@@ -140,5 +189,5 @@ export function usePushToTalk(sessionId: string | null) {
     [send],
   );
 
-  return { state, turns, error, startRecording, stopRecording, sendText };
+  return { state, turns, error, reset, stop, startRecording, stopRecording, sendText };
 }

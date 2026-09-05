@@ -20,11 +20,12 @@ interface Message {
 }
 
 interface Props {
+  initialStage?: StageId | null;
   initialConversationId: string | null;
   initialMessages: Message[];
 }
 
-export function CoachChat({ initialConversationId, initialMessages }: Props) {
+export function CoachChat({ initialConversationId, initialMessages, initialStage = null }: Props) {
   const t = useTranslations('coach');
   const tc = useTranslations('common');
 
@@ -33,7 +34,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
   const [streaming, setStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [citations, setCitations] = useState<string[]>([]);
-  const [stageFocus, setStageFocus] = useState<StageId | null>(null);
+  const [stageFocus, setStageFocus] = useState<StageId | null>(initialStage);
 
   const conversationId = useRef(initialConversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
   // scroll area, and scrolling it to the bottom cuts off its heading.
   useEffect(() => {
     if (messages.length === 0) return;
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: streaming ? 'instant' : 'smooth' });
   }, [messages, streaming]);
 
   async function send(text: string) {
@@ -113,7 +114,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
               return next;
             });
           } else if (event.type === 'error') {
-            setError(event.message as string);
+            throw new Error(event.message as string);
           }
         }
       }
@@ -195,7 +196,7 @@ export function CoachChat({ initialConversationId, initialMessages }: Props) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               // Enter sends on a desktop keyboard; on a phone it inserts a newline.
-              if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing && !('ontouchstart' in window)) {
                 e.preventDefault();
                 void send(input);
               }

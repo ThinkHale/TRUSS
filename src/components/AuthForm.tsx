@@ -45,7 +45,9 @@ export function AuthForm({ mode }: { mode: 'login' | 'signup' }) {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
-        router.push(params.get('next') ?? '/coach');
+        const next = params.get('next');
+        // Accept only local paths; never pass an arbitrary URL to the router.
+        router.push(next && /^\/(?!\/)/.test(next) && !/[\\\u0000-\u0020]/.test(next) ? next : '/coach');
       }
       router.refresh();
     } catch (err) {
