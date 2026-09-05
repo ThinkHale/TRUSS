@@ -81,7 +81,8 @@
     "micLive": "We can hear you",
     "micQuiet": "Not picking up your voice yet — try speaking up",
     "muted": "Muted",
-    "tapToHear": "Tap to hear them"
+    "tapToHear": "Tap to hear them",
+    "micHeld": "Hold on — let them finish"
   },
   "scorecard": {
     "title": "Your scorecard",

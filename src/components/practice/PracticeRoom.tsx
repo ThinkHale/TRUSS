@@ -361,23 +361,33 @@ function LiveSession({
               role="meter"
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-valuenow={Math.round(realtime.inputLevel * 100)}
+              aria-valuenow={realtime.micGated ? 0 : Math.round(realtime.inputLevel * 100)}
               aria-label={t('micLevel')}
             >
               <div
                 className="h-full rounded-full transition-[width] duration-100"
                 style={{
-                  width: `${Math.min(100, Math.round(realtime.inputLevel * 180))}%`,
-                  backgroundColor: realtime.inputLevel > 0.04 ? 'var(--color-go)' : 'var(--color-ink-400)',
+                  width: realtime.micGated
+                    ? '100%'
+                    : `${Math.min(100, Math.round(realtime.inputLevel * 180))}%`,
+                  backgroundColor: realtime.micGated
+                    ? 'var(--color-gold-500)'
+                    : realtime.inputLevel > 0.04
+                      ? 'var(--color-go)'
+                      : 'var(--color-ink-400)',
                 }}
               />
             </div>
             <p className="mt-1.5 text-center text-xs text-ink-400">
-              {realtime.muted
-                ? t('muted')
-                : realtime.inputLevel > 0.04
-                  ? t('micLive')
-                  : t('micQuiet')}
+              {/* While the gate is shut the meter reads zero by design, so say
+                  so rather than let it look like a dead microphone. */}
+              {realtime.micGated
+                ? t('micHeld')
+                : realtime.muted
+                  ? t('muted')
+                  : realtime.inputLevel > 0.04
+                    ? t('micLive')
+                    : t('micQuiet')}
             </p>
           </div>
         )}

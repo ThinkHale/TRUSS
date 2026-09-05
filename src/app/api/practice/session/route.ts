@@ -141,18 +141,25 @@ export async function POST(req: NextRequest) {
           input: {
             // Transcribe the rep so the turn can be scored later.
             transcription: { model: 'whisper-1' },
-            // Server-side turn detection makes it feel like a real
-            // conversation: the character can be interrupted, and silence
-            // ends the rep's turn.
+            // Reps practice in offices and trucks with other people around.
+            // Near-field assumes the speaker is close to the mic and treats
+            // the rest of the room as noise, so a conversation next door does
+            // not register as the rep taking their turn.
+            noise_reduction: { type: 'near_field' },
             turn_detection: {
               type: 'server_vad',
-              // Reps practice in trucks and driveways on laptop mics. The
-              // default 0.5 is tuned for a headset and drops quiet speakers,
-              // which reads as the session ignoring them entirely.
-              threshold: 0.35,
+              // Deliberately above the 0.5 default: a false trigger is far
+              // worse than a missed one here, because it cuts the character
+              // off mid-sentence and derails the roleplay.
+              threshold: 0.6,
               prefix_padding_ms: 300,
-              silence_duration_ms: 700,
+              // Long enough to let a rep gather their thought mid-answer
+              // without the turn being handed back early.
+              silence_duration_ms: 900,
               create_response: true,
+              // The character finishes its line. Stray noise can no longer
+              // cancel a reply that is already being spoken.
+              interrupt_response: false,
             },
           },
           output: { voice: scenario.voice },

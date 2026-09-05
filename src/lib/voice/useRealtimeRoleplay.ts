@@ -7,8 +7,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  *
  * The browser negotiates directly with OpenAI Realtime using a short-lived
  * credential minted by our server, so audio never round-trips through us and
- * latency stays low enough to feel like a real conversation — the rep can
- * interrupt the homeowner, and silence ends their turn.
+ * latency stays low enough to feel like a real conversation.
+ *
+ * Turns are strictly alternating: the microphone is held closed while the
+ * character speaks. Letting the rep talk over the character sounds truer to a
+ * real door, but in a room with other people in it every stray noise cut the
+ * character off mid-sentence, which derails the roleplay far worse than losing
+ * the ability to interrupt.
  *
  * Transcripts are surfaced as they finalize so the session can be scored even
  * if the connection drops partway through.
@@ -46,6 +51,8 @@ export interface RealtimeRoleplay {
    * wrong, and the session looks identical to one that is simply waiting.
    */
   inputLevel: number;
+  /** True while the mic is held closed because the character is speaking. */
+  micGated: boolean;
   /** The browser refused to autoplay the character; the UI offers a tap. */
   audioBlocked: boolean;
   resumeAudio: () => void;
@@ -67,6 +74,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const [muted, setMuted] = useState(false);
   const [inputLevel, setInputLevel] = useState(0);
   const [audioBlocked, setAudioBlocked] = useState(false);
+  const [micGated, setMicGated] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -78,6 +86,9 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const meterRef = useRef<{ ctx: AudioContext; raf: number } | null>(null);
   const startGenRef = useRef(0);
+  const manualMuteRef = useRef(false);
+  const audioPlayingRef = useRef(false);
+  const gateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { onTurn, onError } = options;
 
@@ -157,7 +168,44 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     meterRef.current = { ctx, raf: requestAnimationFrame(tick) };
   }, []);
 
+  /**
+   * Holds the microphone closed while the character is speaking.
+   *
+   * Server-side turn detection alone still listens through the reply, so a door
+   * closing or a conversation in the next room lands as the rep taking their
+   * turn. Nothing is transmitted while the gate is shut, so there is no audio
+   * for the far end to mistake for speech.
+   */
+  const gateMic = useCallback((gated: boolean) => {
+    setMicGated(gated);
+
+    if (gateTimerRef.current) {
+      clearTimeout(gateTimerRef.current);
+      gateTimerRef.current = null;
+    }
+    // A dropped end-of-playback event must never leave the rep permanently
+    // unable to speak. No single reply runs this long.
+    if (gated) {
+      gateTimerRef.current = setTimeout(() => {
+        audioPlayingRef.current = false;
+        gateMicRef.current?.(false);
+      }, 30_000);
+    }
+
+    const track = streamRef.current?.getAudioTracks()[0];
+    if (!track) return;
+    track.enabled = gated ? false : !manualMuteRef.current;
+  }, []);
+  const gateMicRef = useRef<typeof gateMic | null>(null);
+  gateMicRef.current = gateMic;
+
   const teardown = useCallback(() => {
+    setMicGated(false);
+    audioPlayingRef.current = false;
+    if (gateTimerRef.current) {
+      clearTimeout(gateTimerRef.current);
+      gateTimerRef.current = null;
+    }
     if (flushTimerRef.current) {
       clearInterval(flushTimerRef.current);
       flushTimerRef.current = null;
@@ -201,6 +249,8 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
       setError(null);
       setTurns([]);
       pendingRef.current = [];
+      manualMuteRef.current = false;
+      setMuted(false);
       setState('requesting-mic');
 
       // 1. Microphone first: if this is denied, nothing else is worth doing.
@@ -341,15 +391,38 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
           // The character's line, once it finishes speaking.
           case 'response.output_audio_transcript.done':
             recordTurn('character', String(event.transcript ?? ''));
-            setState('listening');
             break;
 
           case 'response.created':
             setState('speaking');
+            gateMic(true);
+            break;
+
+          case 'output_audio_buffer.started':
+            audioPlayingRef.current = true;
+            setState('speaking');
+            gateMic(true);
+            break;
+
+          // Playback finished. This is the only safe moment to reopen:
+          // response.done fires when generation completes, which is while the
+          // character is still audibly talking.
+          case 'output_audio_buffer.stopped':
+          case 'output_audio_buffer.cleared':
+            audioPlayingRef.current = false;
+            gateMic(false);
+            setState('listening');
+            break;
+
+          case 'response.done':
+            // A reply that produced no audio still has to reopen the mic.
+            if (!audioPlayingRef.current) {
+              gateMic(false);
+              setState('listening');
+            }
             break;
 
           case 'input_audio_buffer.speech_started':
-            // The rep talked over the character; that is allowed and realistic.
             setState('listening');
             break;
 
@@ -359,15 +432,19 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         }
       }
     },
-    [fail, flush, recordTurn, teardown, startMeter],
+    [fail, flush, recordTurn, teardown, startMeter, gateMic],
   );
 
   const toggleMute = useCallback(() => {
     const track = streamRef.current?.getAudioTracks()[0];
     if (!track) return;
-    track.enabled = !track.enabled;
-    setMuted(!track.enabled);
-  }, []);
+    const next = !manualMuteRef.current;
+    manualMuteRef.current = next;
+    setMuted(next);
+    // The gate wins while the character is speaking; this takes effect as soon
+    // as it reopens.
+    track.enabled = !next && !micGated;
+  }, [micGated]);
 
   /** Retries playback from inside a user gesture, which autoplay always allows. */
   const resumeAudio = useCallback(() => {
@@ -385,6 +462,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     turns,
     error,
     muted,
+    micGated,
     inputLevel,
     audioBlocked,
     resumeAudio,

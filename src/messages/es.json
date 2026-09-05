@@ -81,7 +81,8 @@
     "micLive": "Te escuchamos",
     "micQuiet": "Aun no captamos tu voz, intenta hablar mas fuerte",
     "muted": "Silenciado",
-    "tapToHear": "Toca para escuchar"
+    "tapToHear": "Toca para escuchar",
+    "micHeld": "Espera, deja que terminen"
   },
   "scorecard": {
     "title": "Tu calificación",
