@@ -59,16 +59,37 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     supabase
       .from('memberships')
       .select(
-        'org_id, role, organizations(id, name, plan, plan_override, override_expires_at, override_reason)',
+        'org_id, role, created_at, organizations(id, name, plan, plan_override, override_expires_at, override_reason)',
       )
-      .eq('user_id', user.id),
+      .eq('user_id', user.id)
+      // Oldest first, so the fallback below is deterministic rather than
+      // whatever order the planner happened to return.
+      .order('created_at', { ascending: true }),
     supabase.from('platform_admins').select('user_id').eq('user_id', user.id).maybeSingle(),
   ]);
 
-  if (!profile?.active_org_id) return null;
-
-  const membership = memberships?.find((m) => m.org_id === profile.active_org_id);
+  // active_org_id is a pointer, not the source of truth — membership is. The
+  // pointer gets blanked whenever the org it named is deleted, because the
+  // foreign key is ON DELETE SET NULL, and it can also name an org the user has
+  // since been removed from. Treating either case as "no organization" sent
+  // people to onboarding while they held a perfectly good membership, and
+  // onboarding then built them a second company.
+  //
+  // So: prefer the org the pointer names, fall back to any membership they
+  // hold, and only give up when there is genuinely nothing to fall back to.
+  const membership =
+    memberships?.find((m) => m.org_id === profile?.active_org_id) ?? memberships?.[0];
   if (!membership) return null;
+
+  // Repair the pointer so the next request takes the fast path, and so the rest
+  // of the app — which reads profiles.active_org_id directly — agrees with the
+  // org this session resolved to.
+  if (profile?.active_org_id !== membership.org_id) {
+    await supabase
+      .from('profiles')
+      .update({ active_org_id: membership.org_id })
+      .eq('id', user.id);
+  }
 
   const org = membership.organizations as unknown as {
     id: string;
@@ -96,7 +117,7 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     planOverride: org.plan_override,
     overrideExpiresAt: org.override_expires_at,
     overrideReason: org.override_reason,
-    locale: (profile.locale as 'en' | 'es') ?? 'en',
+    locale: (profile?.locale as 'en' | 'es') ?? 'en',
     isPlatformAdmin: Boolean(operator),
   };
 });
