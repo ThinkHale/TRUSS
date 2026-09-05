@@ -10,9 +10,10 @@ export default function Loading() {
     <div className="coach-page flex flex-col" role="status" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading</span>
 
+      {/* One row, matching the real bar, so the swap is not a visible jump. */}
       <div className="app-page-heading">
-        <Skeleton className="skeleton-title w-56 rounded-lg" />
-        <Skeleton className="mt-3 h-4 w-80 rounded" />
+        <Skeleton className="h-9 w-40 rounded-lg" />
+        <Skeleton className="h-4 w-64 rounded" />
       </div>
 
       {/* Same containers as the real screen, so the chips land in one row on a
