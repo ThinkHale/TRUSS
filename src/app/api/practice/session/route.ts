@@ -146,7 +146,10 @@ export async function POST(req: NextRequest) {
             // ends the rep's turn.
             turn_detection: {
               type: 'server_vad',
-              threshold: 0.5,
+              // Reps practice in trucks and driveways on laptop mics. The
+              // default 0.5 is tuned for a headset and drops quiet speakers,
+              // which reads as the session ignoring them entirely.
+              threshold: 0.35,
               prefix_padding_ms: 300,
               silence_duration_ms: 700,
               create_response: true,

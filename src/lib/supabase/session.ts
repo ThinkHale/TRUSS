@@ -5,6 +5,7 @@
  * load the enterprise context that personalizes the model's behavior.
  */
 
+import { cache } from 'react';
 import { supabaseServer } from './server';
 import type { OrgContext } from '@/lib/ai/prompts';
 
@@ -18,30 +19,37 @@ export interface SessionContext {
   locale: 'en' | 'es';
 }
 
-export async function getSessionContext(): Promise<SessionContext | null> {
+/**
+ * Memoized for the life of one request. The app layout and the page inside it
+ * both need the session, and without this each render pass paid for a separate
+ * round of auth and database calls — the bulk of the delay when switching
+ * sections.
+ */
+export const getSessionContext = cache(async (): Promise<SessionContext | null> => {
   const supabase = await supabaseServer();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  // getClaims verifies the token's ES256 signature against the project's
+  // published JWKS in-process. getUser would ask the auth server to do the
+  // same thing over the network on every single render.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  if (!claims?.sub) return null;
+  const user = { id: claims.sub, email: claims.email ?? null };
 
-  // The profile row carries the active org; memberships carry the role.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('active_org_id, locale')
-    .eq('id', user.id)
-    .single();
+  // The profile row carries the active org; memberships carry the role. Both
+  // are keyed off the user alone, so they go out together rather than in
+  // sequence — a rep belongs to one org in practice, so this stays small.
+  const [{ data: profile }, { data: memberships }] = await Promise.all([
+    supabase.from('profiles').select('active_org_id, locale').eq('id', user.id).single(),
+    supabase
+      .from('memberships')
+      .select('org_id, role, organizations(id, name, plan)')
+      .eq('user_id', user.id),
+  ]);
 
   if (!profile?.active_org_id) return null;
 
-  const { data: membership } = await supabase
-    .from('memberships')
-    .select('role, organizations(id, name, plan)')
-    .eq('user_id', user.id)
-    .eq('org_id', profile.active_org_id)
-    .single();
-
+  const membership = memberships?.find((m) => m.org_id === profile.active_org_id);
   if (!membership) return null;
 
   const org = membership.organizations as unknown as {
@@ -52,14 +60,14 @@ export async function getSessionContext(): Promise<SessionContext | null> {
 
   return {
     userId: user.id,
-    email: user.email ?? null,
+    email: user.email,
     orgId: org.id,
     orgName: org.name,
     role: membership.role as SessionContext['role'],
     plan: org.plan,
     locale: (profile.locale as 'en' | 'es') ?? 'en',
   };
-}
+});
 
 /**
  * Builds the org context that personalizes prompts. For Enterprise tenants this

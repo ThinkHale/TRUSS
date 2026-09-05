@@ -76,7 +76,12 @@
     "connectionLost": "Se cayó la conexión. Cambiando a mantener presionado.",
     "transcript": "Lo que se dijo",
     "connectFailed": "No se pudo conectar con la practica. Revisa tu conexion e intentalo de nuevo, o escribe en su lugar.",
-    "connectFailedShort": "No se pudo conectar"
+    "connectFailedShort": "No se pudo conectar",
+    "micLevel": "Nivel del microfono",
+    "micLive": "Te escuchamos",
+    "micQuiet": "Aun no captamos tu voz, intenta hablar mas fuerte",
+    "muted": "Silenciado",
+    "tapToHear": "Toca para escuchar"
   },
   "scorecard": {
     "title": "Tu calificación",

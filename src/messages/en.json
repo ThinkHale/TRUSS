@@ -76,7 +76,12 @@
     "connectionLost": "Connection dropped. Switching to hold-to-talk.",
     "transcript": "What was said",
     "connectFailed": "Could not reach the practice line. Check your connection and try again — or type instead.",
-    "connectFailedShort": "Could not connect"
+    "connectFailedShort": "Could not connect",
+    "micLevel": "Microphone level",
+    "micLive": "We can hear you",
+    "micQuiet": "Not picking up your voice yet — try speaking up",
+    "muted": "Muted",
+    "tapToHear": "Tap to hear them"
   },
   "scorecard": {
     "title": "Your scorecard",

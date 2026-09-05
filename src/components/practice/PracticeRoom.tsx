@@ -352,7 +352,43 @@ function LiveSession({
                   ? t('holdToTalk')
                   : t('yourTurn')}
         </p>
-        <p className="mt-1 max-w-xs text-center text-xs text-ink-400">{t('micHelp')}</p>
+        {/* Level meter. The one thing that tells a rep whether the room can
+            actually hear them, rather than leaving silence ambiguous. */}
+        {!fallback && !failed && !micDenied && (
+          <div className="mt-4 w-full max-w-xs">
+            <div
+              className="h-2 overflow-hidden rounded-full bg-paper-300"
+              role="meter"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={Math.round(realtime.inputLevel * 100)}
+              aria-label={t('micLevel')}
+            >
+              <div
+                className="h-full rounded-full transition-[width] duration-100"
+                style={{
+                  width: `${Math.min(100, Math.round(realtime.inputLevel * 180))}%`,
+                  backgroundColor: realtime.inputLevel > 0.04 ? 'var(--color-go)' : 'var(--color-ink-400)',
+                }}
+              />
+            </div>
+            <p className="mt-1.5 text-center text-xs text-ink-400">
+              {realtime.muted
+                ? t('muted')
+                : realtime.inputLevel > 0.04
+                  ? t('micLive')
+                  : t('micQuiet')}
+            </p>
+          </div>
+        )}
+
+        {realtime.audioBlocked && (
+          <button type="button" className="btn-ghost mt-4" onClick={realtime.resumeAudio}>
+            {t('tapToHear')}
+          </button>
+        )}
+
+        <p className="mt-3 max-w-xs text-center text-xs text-ink-400">{t('micHelp')}</p>
       </div>
 
       {/* Hold-to-talk controls, shown only on the fallback path. */}

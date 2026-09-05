@@ -40,6 +40,15 @@ export interface RealtimeRoleplay {
   error: string | null;
   /** True when the rep's microphone is muted. */
   muted: boolean;
+  /**
+   * Live microphone loudness, 0–1. Drives the on-screen level meter: without
+   * it a rep whose mic is captured but silent gets no signal that anything is
+   * wrong, and the session looks identical to one that is simply waiting.
+   */
+  inputLevel: number;
+  /** The browser refused to autoplay the character; the UI offers a tap. */
+  audioBlocked: boolean;
+  resumeAudio: () => void;
   start: (scenarioId: string) => Promise<string | null>;
   stop: () => void;
   toggleMute: () => void;
@@ -56,6 +65,8 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [muted, setMuted] = useState(false);
+  const [inputLevel, setInputLevel] = useState(0);
+  const [audioBlocked, setAudioBlocked] = useState(false);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -65,6 +76,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const startedAtRef = useRef<number>(0);
   const pendingRef = useRef<Turn[]>([]);
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const meterRef = useRef<{ ctx: AudioContext; raf: number } | null>(null);
 
   const { onTurn, onError } = options;
 
@@ -108,11 +120,54 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     [onTurn],
   );
 
+  /**
+   * Samples microphone loudness off the same track that is being sent, so the
+   * meter reflects what the far end actually receives rather than merely that
+   * a device was granted.
+   */
+  const startMeter = useCallback((stream: MediaStream) => {
+    const Ctx: typeof AudioContext =
+      window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+
+    const ctx = new Ctx();
+    const source = ctx.createMediaStreamSource(stream);
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    source.connect(analyser);
+
+    const buf = new Uint8Array(analyser.frequencyBinCount);
+    let last = 0;
+
+    const tick = () => {
+      analyser.getByteTimeDomainData(buf);
+      let peak = 0;
+      for (const sample of buf) peak = Math.max(peak, Math.abs(sample - 128) / 128);
+
+      // Throttled: the meter only needs to look alive, not re-render per frame.
+      const now = performance.now();
+      if (now - last > 100) {
+        last = now;
+        setInputLevel(peak);
+      }
+      meterRef.current = { ctx, raf: requestAnimationFrame(tick) };
+    };
+
+    meterRef.current = { ctx, raf: requestAnimationFrame(tick) };
+  }, []);
+
   const teardown = useCallback(() => {
     if (flushTimerRef.current) {
       clearInterval(flushTimerRef.current);
       flushTimerRef.current = null;
     }
+    if (meterRef.current) {
+      cancelAnimationFrame(meterRef.current.raf);
+      void meterRef.current.ctx.close().catch(() => {});
+      meterRef.current = null;
+    }
+    setInputLevel(0);
+
     channelRef.current?.close();
     channelRef.current = null;
 
@@ -188,17 +243,28 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         pc.ontrack = (event) => {
           if (audioRef.current) {
             audioRef.current.srcObject = event.streams[0];
-            void audioRef.current.play().catch(() => {
-              // Autoplay can be blocked; the UI offers a tap-to-hear control.
-            });
+            void audioRef.current
+              .play()
+              .then(() => setAudioBlocked(false))
+              // Blocked autoplay is silent but not fatal: surface a tap-to-hear
+              // control rather than leaving the rep in a quiet room.
+              .catch(() => setAudioBlocked(true));
           }
         };
 
         pc.addTrack(stream.getAudioTracks()[0], stream);
+        startMeter(stream);
 
         const channel = pc.createDataChannel('oai-events');
         channelRef.current = channel;
         channel.onmessage = (event) => handleServerEvent(event.data);
+
+        // The homeowner opens the door and speaks first. It is how a real door
+        // goes, and it doubles as proof the audio path works — a rep who hears
+        // the greeting knows the line is live before they say anything.
+        channel.onopen = () => {
+          channel.send(JSON.stringify({ type: 'response.create' }));
+        };
 
         pc.onconnectionstatechange = () => {
           if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
@@ -270,7 +336,7 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
         }
       }
     },
-    [fail, flush, recordTurn, teardown],
+    [fail, flush, recordTurn, teardown, startMeter],
   );
 
   const toggleMute = useCallback(() => {
@@ -280,8 +346,28 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     setMuted(!track.enabled);
   }, []);
 
+  /** Retries playback from inside a user gesture, which autoplay always allows. */
+  const resumeAudio = useCallback(() => {
+    void audioRef.current
+      ?.play()
+      .then(() => setAudioBlocked(false))
+      .catch(() => setAudioBlocked(true));
+  }, []);
+
   // Always release the microphone when the component goes away.
   useEffect(() => teardown, [teardown]);
 
-  return { state, turns, error, muted, start, stop, toggleMute, audioRef };
+  return {
+    state,
+    turns,
+    error,
+    muted,
+    inputLevel,
+    audioBlocked,
+    resumeAudio,
+    start,
+    stop,
+    toggleMute,
+    audioRef,
+  };
 }

@@ -10,6 +10,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { cache } from 'react';
 
 function requireEnv(name: string): string {
   const value = process.env[name];
@@ -17,8 +18,14 @@ function requireEnv(name: string): string {
   return value;
 }
 
-/** Request-scoped client that carries the signed-in user. RLS applies. */
-export async function supabaseServer() {
+/**
+ * Request-scoped client that carries the signed-in user. RLS applies.
+ *
+ * Memoized per request: a layout, its page, and any helper they share all ask
+ * for a client, and there is no reason to build more than one against the same
+ * cookie store.
+ */
+export const supabaseServer = cache(async () => {
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -40,7 +47,7 @@ export async function supabaseServer() {
       },
     },
   );
-}
+});
 
 /**
  * Bypasses RLS. Only for trusted server contexts with no user session:
