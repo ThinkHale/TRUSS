@@ -82,9 +82,10 @@ export function TrussIcon({
  * custom: the squared R and the cut S are not Montserrat and cannot be faked
  * with it. `onDark` picks the white one; light backgrounds get navy.
  *
- * The white file is derived from the navy one rather than taken from the kit.
- * 03_TRUSS_wordmark_white.png ships with a speckled matte — black artefacts
- * scattered through the letterforms — so it is not usable as delivered.
+ * Both tones come from the same file: 03, trimmed to its content box. The navy
+ * one is recoloured from it rather than taken from 05, so the two are
+ * geometrically identical — 05 is clean but padded differently, and swapping
+ * between them would shift the lockup depending on the background it sat on.
  */
 export function Wordmark({
   compact = false,
@@ -102,8 +103,8 @@ export function Wordmark({
       <Image
         src={onDark ? '/brand/truss-wordmark-white.png' : '/brand/truss-wordmark-navy.png'}
         alt="TRUSS"
-        width={1980}
-        height={509}
+        width={1988}
+        height={304}
         sizes="(max-width: 767px) 160px, 220px"
         style={{ width: compact ? 96 : 132, height: 'auto' }}
       />
@@ -118,10 +119,11 @@ export function Wordmark({
  * The full production lockup: gold truss over the wordmark over the tagline.
  *
  * Every place this renders is navy — the sidebar, the phone header, the
- * marketing bar, the Coach plaque — so it is the white-text version. The kit
- * ships this lockup with navy text, which is invisible on all four; the file
- * here has its text recoloured to white with the gold left alone. The original
- * is kept as truss-logo-onlight.png for any light surface that wants it.
+ * marketing bar, the Coach plaque — so it needs white text. The kit ships this
+ * lockup dark: navy text originally, black after the revision, neither of which
+ * is readable on any of the four. The file here has its text recoloured to
+ * white with the gold left untouched, and the delivered version is kept as
+ * truss-logo-onlight.png for any light surface that wants it.
  *
  * Callers size it with `className`; the width set here is only the fallback.
  */
