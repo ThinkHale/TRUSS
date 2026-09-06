@@ -16,6 +16,7 @@ import { roleplayCharacterPrompt } from '@/lib/ai/prompts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { billableSeconds } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
 
@@ -76,6 +77,15 @@ export async function POST(req: NextRequest) {
   const { scenarioId, mode } = parsed.data;
 
   const supabase = await supabaseServer();
+
+  // Settle anything still open before the allowance is checked.
+  //
+  // Practice minutes were only ever metered by /api/practice/score, so a rep
+  // who simply never scored consumed Realtime audio that no counter ever saw —
+  // and the quota check below would keep passing because nothing had been
+  // recorded. Opening a session now closes and bills the previous one, so the
+  // only way to avoid metering is to practice exactly once and never again.
+  await settleStaleSessions(supabase, session.orgId, session.userId);
 
   const { data: allowed, error: quotaError } = await supabase.rpc('within_quota', {
     target_org: session.orgId,
@@ -172,16 +182,21 @@ export async function POST(req: NextRequest) {
   });
 
   if (!res.ok) {
+    // Logged, not returned. An upstream error body can name the organization,
+    // the model, and the shape of the key that failed; none of that belongs in
+    // a response a rep's browser can read.
     const detail = await res.text().catch(() => '');
+    console.error('realtime client_secret failed', {
+      status: res.status,
+      detail: detail.slice(0, 300),
+    });
+
     await supabase
       .from('practice_sessions')
       .update({ status: 'abandoned', ended_at: new Date().toISOString() })
       .eq('id', practiceSession.id);
 
-    return Response.json(
-      { error: 'Could not open a voice session.', detail: detail.slice(0, 300) },
-      { status: 502 },
-    );
+    return Response.json({ error: 'Could not open a voice session.' }, { status: 502 });
   }
 
   const realtime = await res.json();
@@ -195,6 +210,49 @@ export async function POST(req: NextRequest) {
     expiresAt: realtime.expires_at,
     model: MODELS.realtime,
   });
+}
+
+/**
+ * Closes and bills any session this rep left open.
+ *
+ * Best effort by design: a failure here must not stop somebody practising, so
+ * it logs and moves on rather than returning an error into the start path.
+ */
+async function settleStaleSessions(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  orgId: string,
+  userId: string,
+) {
+  const { data: stale } = await supabase
+    .from('practice_sessions')
+    .select('id, started_at')
+    .eq('user_id', userId)
+    .in('status', ['active', 'scoring'])
+    .limit(20);
+
+  for (const row of stale ?? []) {
+    const seconds = billableSeconds(row.started_at);
+
+    await supabase
+      .from('practice_sessions')
+      .update({
+        status: 'abandoned',
+        ended_at: new Date().toISOString(),
+        duration_seconds: seconds,
+      })
+      .eq('id', row.id);
+
+    if (seconds <= 0) continue;
+
+    const { error } = await supabase.rpc('record_usage', {
+      target_org: orgId,
+      target_user: userId,
+      event_kind: 'practice_seconds',
+      qty: seconds,
+      model_name: MODELS.realtime,
+    });
+    if (error) console.error('could not meter abandoned session', { id: row.id, code: error.code });
+  }
 }
 
 /** Everything the rep is allowed to see. The character brief is withheld. */

@@ -14,6 +14,7 @@ import { scorecardSchema } from '@/lib/truss/scoring';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { billableSeconds } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -66,10 +67,22 @@ export async function POST(req: NextRequest) {
   const repTurns = transcript.filter((t) => t.role === 'rep').length;
 
   if (repTurns < MIN_REP_TURNS) {
+    const seconds = billableSeconds(practiceSession.started_at);
     await supabase
       .from('practice_sessions')
-      .update({ status: 'abandoned', ended_at: new Date().toISOString() })
+      .update({ status: 'abandoned', ended_at: new Date().toISOString(), duration_seconds: seconds })
       .eq('id', sessionId);
+
+    // Too short to score is not the same as free. The audio still happened.
+    if (seconds > 0) {
+      await supabase.rpc('record_usage', {
+        target_org: session.orgId,
+        target_user: session.userId,
+        event_kind: 'practice_seconds',
+        qty: seconds,
+        model_name: MODELS.realtime,
+      });
+    }
 
     return Response.json(
       { error: 'too_short', message: 'That conversation was too short to score. Give it a real run.' },
@@ -87,10 +100,9 @@ export async function POST(req: NextRequest) {
   }
 
   const orgContext = await loadOrgContext(session);
-  const durationSeconds = Math.max(
-    0,
-    Math.round((Date.now() - new Date(practiceSession.started_at).getTime()) / 1000),
-  );
+  // Capped: this is wall clock since the session opened, which only equals the
+  // audio consumed if the rep scored it when they finished.
+  const durationSeconds = billableSeconds(practiceSession.started_at);
 
   let card;
   try {
