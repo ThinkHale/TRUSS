@@ -119,11 +119,9 @@ export function Wordmark({
  * The full production lockup: gold truss over the wordmark over the tagline.
  *
  * Every place this renders is navy — the sidebar, the phone header, the
- * marketing bar, the Coach plaque — so it needs white text. The kit ships this
- * lockup dark: navy text originally, black after the revision, neither of which
- * is readable on any of the four. The file here has its text recoloured to
- * white with the gold left untouched, and the delivered version is kept as
- * truss-logo-onlight.png for any light surface that wants it.
+ * marketing bar, the Coach plaque — so this is 07_TRUSS_full_white_logo, the
+ * kit's white-text export, used verbatim. The dark-text lockup is kept beside
+ * it as truss-logo-onlight.png for any light surface that wants it.
  *
  * Callers size it with `className`; the width set here is only the fallback.
  */
