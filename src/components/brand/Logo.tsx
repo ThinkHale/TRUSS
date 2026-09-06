@@ -80,8 +80,11 @@ export function TrussIcon({
  *
  * The wordmark is real artwork rather than type, because the letterforms are
  * custom: the squared R and the cut S are not Montserrat and cannot be faked
- * with it. Two versions exist for the two grounds, so `onDark` picks the white
- * one and light backgrounds get navy.
+ * with it. `onDark` picks the white one; light backgrounds get navy.
+ *
+ * The white file is derived from the navy one rather than taken from the kit.
+ * 03_TRUSS_wordmark_white.png ships with a speckled matte — black artefacts
+ * scattered through the letterforms — so it is not usable as delivered.
  */
 export function Wordmark({
   compact = false,
@@ -99,8 +102,8 @@ export function Wordmark({
       <Image
         src={onDark ? '/brand/truss-wordmark-white.png' : '/brand/truss-wordmark-navy.png'}
         alt="TRUSS"
-        width={2013}
-        height={695}
+        width={1980}
+        height={509}
         sizes="(max-width: 767px) 160px, 220px"
         style={{ width: compact ? 96 : 132, height: 'auto' }}
       />
@@ -114,8 +117,11 @@ export function Wordmark({
 /**
  * The full production lockup: gold truss over the wordmark over the tagline.
  *
- * Drawn for dark surfaces — the wordmark inside it is white — so on paper it
- * needs a navy plaque behind it rather than being dropped straight on.
+ * Every place this renders is navy — the sidebar, the phone header, the
+ * marketing bar, the Coach plaque — so it is the white-text version. The kit
+ * ships this lockup with navy text, which is invisible on all four; the file
+ * here has its text recoloured to white with the gold left alone. The original
+ * is kept as truss-logo-onlight.png for any light surface that wants it.
  *
  * Callers size it with `className`; the width set here is only the fallback.
  */
