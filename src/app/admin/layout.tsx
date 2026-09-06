@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { TrussMark } from '@/components/brand/Logo';
 import { requirePlatformAdmin } from '@/lib/auth/platform';
 import { isSupabaseConfigured } from '@/lib/supabase/server';
 
@@ -29,6 +30,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <header className="admin-bar">
         <div className="admin-bar-inner">
           <Link href="/admin" className="admin-brand">
+            <TrussMark width={38} />
             TRUSS <span>operations</span>
           </Link>
 

@@ -1,71 +1,121 @@
 import Image from 'next/image';
 
 /**
- * The TRUSS mark.
+ * The TRUSS mark, drawn.
  *
- * A truss: the triangulated structure that carries load without bending. It is
- * the roof itself, and it is what the methodology does for a sales conversation.
+ * A Fink truss: bottom chord, two top chords meeting at the apex, a king post
+ * down the centre, and a vertical and a diagonal on each side. It is the
+ * triangulated structure that carries load without bending — the roof itself,
+ * and what the methodology does for a sales conversation.
  *
- * This drawn mark is the fallback for places too small for the production
- * lockup — favicons, dense list rows. Anywhere the brand is actually being
- * presented, use BrandLogo instead.
+ * Traced from 02_TRUSS_monochrome_icon_black.png so it matches the production
+ * icon rather than approximating it. Strokes rather than fills, because every
+ * member is a uniform bar and stroking keeps the geometry legible and editable.
+ *
+ * This exists for the places that need the mark to take the colour of whatever
+ * it sits in. Anywhere the brand is being *presented*, use BrandLogo or
+ * Wordmark, which render the real artwork.
  */
-
-export function TrussMark({ size = 32, className = '' }: { size?: number; className?: string }) {
+export function TrussMark({
+  width = 60,
+  className = '',
+}: {
+  /** Width in pixels. Height follows the mark's 3:1 proportion. */
+  width?: number;
+  className?: string;
+}) {
   return (
     <svg
-      width={size}
-      height={size}
-      viewBox="0 0 32 32"
+      width={width}
+      height={width / 3}
+      viewBox="0 0 60 20"
       fill="none"
+      stroke="currentColor"
+      strokeWidth="2.4"
       className={className}
       role="img"
       aria-label="TRUSS"
     >
-      {/* Top chord — the roofline. */}
-      <path
-        d="M2 22 L16 6 L30 22"
-        stroke="var(--color-gold-500)"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {/* Bottom chord. */}
-      <path d="M3 22 H29" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      {/* Web members — the five stages carrying the load. */}
-      <path
-        d="M9 22 L16 6 L23 22 M16 6 V22"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
+      {/* Bottom chord, then the two top chords up to the apex. */}
+      <path d="M1.5 18.5 H58.5" strokeLinecap="square" />
+      <path d="M1.5 18.5 L30 1.5 L58.5 18.5" strokeLinejoin="miter" strokeLinecap="square" />
+      {/* King post. */}
+      <path d="M30 1.5 V18.5" strokeLinecap="square" />
+      {/* Web members: a vertical and a diagonal each side, mirrored. */}
+      <path d="M17 18.5 V9.25 M17 18.5 L30 1.5" strokeLinecap="square" />
+      <path d="M43 18.5 V9.25 M43 18.5 L30 1.5" strokeLinecap="square" />
     </svg>
   );
 }
 
-export function Wordmark({ compact = false }: { compact?: boolean }) {
+/**
+ * The gold truss icon, alone.
+ *
+ * Gold on transparent, so it reads on paper and on navy alike — which is why
+ * there is one of these rather than a light and a dark variant.
+ */
+export function TrussIcon({
+  className = '',
+  width = 96,
+}: {
+  className?: string;
+  width?: number;
+}) {
   return (
-    <div className="flex items-center gap-2.5">
-      <TrussMark size={compact ? 30 : 36} className="shrink-0" />
-      <div className="leading-none">
-        <div className={compact ? 'text-lg font-extrabold tracking-tight' : 'text-xl font-extrabold tracking-tight'}>
-          TRUSS
-        </div>
-        {!compact && (
-          <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.14em] text-ink-500">
-            Sales intelligence for the Trades
-          </div>
-        )}
-      </div>
+    <Image
+      src="/brand/truss-icon.png"
+      alt=""
+      width={1884}
+      height={706}
+      sizes="(max-width: 767px) 120px, 200px"
+      style={{ width, height: 'auto' }}
+      className={className}
+      aria-hidden
+    />
+  );
+}
+
+/**
+ * Icon over wordmark — the stacked lockup from the brand kit.
+ *
+ * The wordmark is real artwork rather than type, because the letterforms are
+ * custom: the squared R and the cut S are not Montserrat and cannot be faked
+ * with it. Two versions exist for the two grounds, so `onDark` picks the white
+ * one and light backgrounds get navy.
+ */
+export function Wordmark({
+  compact = false,
+  onDark = false,
+}: {
+  compact?: boolean;
+  /** True when this sits on navy or another dark surface. */
+  onDark?: boolean;
+}) {
+  const iconWidth = compact ? 74 : 104;
+
+  return (
+    <div className="brand-wordmark" data-compact={compact ? '' : undefined}>
+      <TrussIcon width={iconWidth} />
+      <Image
+        src={onDark ? '/brand/truss-wordmark-white.png' : '/brand/truss-wordmark-navy.png'}
+        alt="TRUSS"
+        width={2013}
+        height={695}
+        sizes="(max-width: 767px) 160px, 220px"
+        style={{ width: compact ? 96 : 132, height: 'auto' }}
+      />
+      {!compact && (
+        <div className="brand-tagline">Sales intelligence for the Trades</div>
+      )}
     </div>
   );
 }
 
 /**
- * The supplied production lockup: gold truss over the wordmark over the
- * tagline. It is drawn for dark surfaces — the wordmark is white — so on paper
- * it needs a navy plaque behind it rather than being dropped straight on.
+ * The full production lockup: gold truss over the wordmark over the tagline.
+ *
+ * Drawn for dark surfaces — the wordmark inside it is white — so on paper it
+ * needs a navy plaque behind it rather than being dropped straight on.
  *
  * Callers size it with `className`; the width set here is only the fallback.
  */
@@ -81,8 +131,8 @@ export function BrandLogo({
     <Image
       src="/brand/truss-logo.png"
       alt="TRUSS — Sales intelligence for the Trades"
-      width={1800}
-      height={873}
+      width={2381}
+      height={1158}
       preload={preload}
       sizes="(max-width: 767px) 200px, 260px"
       className={`h-auto w-60 object-contain ${className}`}

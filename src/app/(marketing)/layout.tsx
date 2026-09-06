@@ -33,7 +33,7 @@ export default async function MarketingLayout({ children }: { children: React.Re
       <footer className="site-footer">
         <div className="site-footer-inner">
           <div>
-            <Wordmark compact />
+            <Wordmark compact onDark />
             <p>
               {t('brand.expansion')}
             </p>

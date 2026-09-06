@@ -32,17 +32,23 @@
   --color-line:        #102d4021;
   --color-line-strong: #102d403d;
 
-  /* Navy. Structural chrome and the dark marketing bands. */
-  --color-navy-900: #071c2f;
-  --color-navy-800: #0d2a40;
-  --color-navy-700: #17384f;
+  /* Navy. TRUSS Navy #0B1F2A is the brand value; 800 and 700 are lifts of it
+     for hover states and layered chrome. */
+  --color-navy-900: #0b1f2a;
+  --color-navy-800: #123040;
+  --color-navy-700: #1b4154;
 
-  /* Gold. The brand accent, taken from the truss mark. */
-  --color-gold-300: #efbd50;
-  --color-gold-400: #e2a82f;
-  --color-gold-500: #c8901c;
-  --color-gold-600: #b9770b;
-  --color-gold-700: #8f5c08;
+  /* Steel gray, from the brand kit. Not yet load-bearing — the ink ramp still
+     carries body text — but it is the palette's neutral and belongs here. */
+  --color-steel: #6b7280;
+
+  /* Gold. TRUSS Gold #D4A017 is the brand value; the rest of the ramp is
+     derived from it so a hover or a shadow stays in the same family. */
+  --color-gold-300: #ecc463;
+  --color-gold-400: #dfb038;
+  --color-gold-500: #d4a017;
+  --color-gold-600: #ac8012;
+  --color-gold-700: #82610e;
 
   /* One color per TRUSS stage, tuned to sit on paper rather than on black. */
   --color-stage-trust:      #b47509;
@@ -56,7 +62,9 @@
   --color-marginal: #a16207;
   --color-nogo:     #b91c1c;
 
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Montserrat carries the headlines, per the brand kit. */
+  --font-display: var(--font-montserrat), var(--font-inter), system-ui, sans-serif;
 
   /* Minimum comfortable touch target for a gloved hand. */
   --spacing-touch: 3rem;
@@ -80,6 +88,7 @@
 
   h1, h2, h3, h4 {
     color: var(--color-ink-900);
+    font-family: var(--font-display);
     letter-spacing: -0.02em;
   }
 
@@ -222,6 +231,11 @@
 .animate-truss-ring {
   animation: truss-ring 1.6s ease-out infinite;
 }
+
+/* The stacked lockup: gold icon, wordmark, then the tagline under a rule. */
+.brand-wordmark { display:flex; flex-direction:column; align-items:flex-start; gap:7px; }
+.brand-wordmark[data-compact] { gap:5px; }
+.brand-tagline { font-size:.62rem; font-weight:700; text-transform:uppercase; letter-spacing:.16em; color:var(--color-ink-500); }
 
 /* ── Marketing site ─────────────────────────────────────────────────────────
    Bright, architectural, and grounded in the gold truss mark. */
@@ -430,7 +444,8 @@ section.card + section.card { margin-top:16px; }
 .admin-shell { min-height:100dvh; background:#0b1b28; color:#e7edf1; }
 .admin-bar { position:sticky; top:0; z-index:40; background:#061523f2; border-bottom:1px solid #c8901c66; -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
 .admin-bar-inner { max-width:1180px; margin:auto; padding:0 22px; height:58px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
-.admin-brand { font-weight:900; letter-spacing:-.02em; color:#fff; }
+.admin-brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:-.02em; color:#fff; }
+.admin-brand svg { color:var(--color-gold-500); flex-shrink:0; }
 .admin-brand span { color:var(--color-gold-300); font-weight:700; }
 .admin-nav { display:flex; align-items:center; gap:18px; font-size:.85rem; font-weight:700; flex-wrap:wrap; }
 .admin-nav a { color:#b6c6d1; }
