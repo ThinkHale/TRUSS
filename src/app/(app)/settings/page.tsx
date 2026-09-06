@@ -34,7 +34,7 @@ export default async function SettingsPage({
     await Promise.all([
       supabase
         .from('usage_counters')
-        .select('coach_messages, practice_seconds, research_briefs')
+        .select('coach_messages, practice_seconds, research_briefs, campaign_generations')
         .eq('org_id', session.orgId)
         .eq('period_month', monthStart.toISOString().slice(0, 10))
         .maybeSingle(),
@@ -173,6 +173,11 @@ export default async function SettingsPage({
             label="Research briefs"
             used={usage?.research_briefs ?? 0}
             limit={entitlements?.monthly_research_briefs ?? null}
+          />
+          <Usage
+            label="Campaigns"
+            used={usage?.campaign_generations ?? 0}
+            limit={entitlements?.monthly_campaigns ?? null}
           />
         </dl>
       </section>

@@ -54,6 +54,26 @@ export async function POST(req: NextRequest) {
   const { name, audience, stage, channels, triggerNote, areaResearchId } = parsed.data;
   const supabase = await supabaseServer();
 
+  // Checked before the model is called, not after. The counter has been
+  // recorded since 0006 but nothing read it back until 0015 gave campaigns a
+  // column, so this route was metered and unlimited at the same time.
+  const { data: allowed, error: quotaError } = await supabase.rpc('within_quota', {
+    target_org: session.orgId,
+    event_kind: 'campaign_generation',
+  });
+  if (quotaError || allowed === null) {
+    return Response.json({ error: 'Could not check usage. Please try again.' }, { status: 503 });
+  }
+  if (allowed === false) {
+    return Response.json(
+      {
+        error: 'quota_exceeded',
+        message: 'You have used all your campaign generations this month.',
+      },
+      { status: 429 },
+    );
+  }
+
   // Ground the copy in real conditions when the rep started from a research brief.
   let researchContext = '';
   if (areaResearchId) {

@@ -35,7 +35,7 @@ export default async function AdminOrgDetail({
         .maybeSingle(),
       supabase
         .from('usage_counters')
-        .select('coach_messages, practice_seconds, research_briefs')
+        .select('coach_messages, practice_seconds, research_briefs, campaign_generations')
         .eq('org_id', id)
         .order('period_month', { ascending: false })
         .limit(1)
@@ -164,6 +164,10 @@ export default async function AdminOrgDetail({
           <div>
             <dt>Research briefs</dt>
             <dd>{usage?.research_briefs ?? 0}</dd>
+          </div>
+          <div>
+            <dt>Campaigns</dt>
+            <dd>{usage?.campaign_generations ?? 0}</dd>
           </div>
         </dl>
         {/* Coach *conversations* are deliberately absent. The RLS policy gates
