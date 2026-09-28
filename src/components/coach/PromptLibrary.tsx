@@ -40,6 +40,13 @@ interface Props {
 }
 
 export function PromptLibrary({ open, onClose, onPick }: Props) {
+  // The sheet only exists while open, so its filters start from the full list
+  // on every opening rather than from whatever someone searched for yesterday.
+  if (!open) return null;
+  return <PromptSheet onClose={onClose} onPick={onPick} />;
+}
+
+function PromptSheet({ onClose, onPick }: Omit<Props, 'open'>) {
   const t = useTranslations('coach');
   const locale = (useLocale() === 'es' ? 'es' : 'en') as 'en' | 'es';
 
@@ -54,8 +61,6 @@ export function PromptLibrary({ open, onClose, onPick }: Props) {
   // Escape closes, and the page behind does not scroll while the sheet is up —
   // on a phone a scrolling backdrop makes the sheet feel broken.
   useEffect(() => {
-    if (!open) return;
-
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') onClose();
     }
@@ -69,18 +74,7 @@ export function PromptLibrary({ open, onClose, onPick }: Props) {
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = previousOverflow;
     };
-  }, [open, onClose]);
-
-  // Reset the filters between openings, so the library always starts from the
-  // full list rather than from whatever someone searched for yesterday.
-  useEffect(() => {
-    if (!open) {
-      setQuery('');
-      setGroup(null);
-    }
-  }, [open]);
-
-  if (!open) return null;
+  }, [onClose]);
 
   return (
     <div className="prompt-backdrop" onMouseDown={onClose}>
