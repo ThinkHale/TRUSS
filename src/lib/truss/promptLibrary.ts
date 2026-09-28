@@ -34,6 +34,8 @@ export type PromptGroupId =
   | 'insurance'
   | 'money'
   | 'closing'
+  | 'service'
+  | 'commercial'
   | 'debrief'
   | 'method';
 
@@ -43,14 +45,21 @@ export interface PromptGroup {
   es: string;
 }
 
-/** Ordered the way a day goes: the door, then what goes wrong, then the close. */
+/**
+ * Ordered the way a day goes: the door, then what goes wrong, then the close.
+ * The service and commercial shelves cover the selling the TRUSS knowledge base
+ * treats as its own motions, so a technician or an account manager finds their
+ * situation too, not only a canvasser.
+ */
 export const PROMPT_GROUPS: PromptGroup[] = [
   { id: 'door', en: 'At the door', es: 'En la puerta' },
   { id: 'objections', en: 'Pushback', es: 'Objeciones' },
   { id: 'insurance', en: 'Claims & adjusters', es: 'Reclamos y ajustadores' },
   { id: 'money', en: 'Deductible & price', es: 'Deducible y precio' },
   { id: 'closing', en: 'Getting a yes', es: 'Cerrar el trato' },
-  { id: 'debrief', en: 'After a bad door', es: 'Después de una mala puerta' },
+  { id: 'service', en: 'Service calls & replacements', es: 'Servicio y reemplazos' },
+  { id: 'commercial', en: 'Commercial accounts', es: 'Cuentas comerciales' },
+  { id: 'debrief', en: 'After a rough one', es: 'Después de una difícil' },
   { id: 'method', en: 'Getting better', es: 'Mejorar' },
 ];
 
@@ -685,6 +694,170 @@ export const PROMPT_LIBRARY: LibraryPrompt[] = [
       situation: 'Ayúdame a tener esta conversación en inglés',
       prompt:
         'Necesito tener una conversación de puerta en inglés y quiero que suene natural, no traducida. Dame la apertura, las preguntas que debo hacer, y cómo explicar el proceso del reclamo — en inglés, como lo diría alguien de verdad.',
+    },
+  },
+
+  // ── Service calls & replacements ──────────────────────────────────────────
+  {
+    id: 'service-repair-replace',
+    group: 'service',
+    stage: 'solve',
+    keywords: ['repair', 'replace', 'replacement', 'old system', 'upsell', 'reparar', 'reemplazar', 'reemplazo'],
+    en: {
+      situation: "They want a repair, but the system is old",
+      prompt:
+        "I am on a service call and the equipment is old. The customer just wants it fixed. How do I lay out repair versus replacement honestly — what each one solves, what it costs, and what risk it leaves — without sounding like I am upselling, and without pushing replacement when a safe repair fits what they want?",
+    },
+    es: {
+      situation: "Quieren una reparación, pero el equipo es viejo",
+      prompt:
+        "Estoy en una llamada de servicio y el equipo es viejo. El cliente solo quiere que lo arregle. ¿Cómo explico reparar o reemplazar con honestidad — qué resuelve cada opción, cuánto cuesta y qué riesgo deja — sin que parezca que quiero vender de más, y sin empujar un reemplazo si una reparación segura cumple lo que quiere?",
+    },
+  },
+  {
+    id: 'service-emergency',
+    group: 'service',
+    stage: 'trust',
+    keywords: ['emergency', 'no heat', 'no cool', 'leak', 'urgent', 'emergencia', 'fuga', 'urgente'],
+    en: {
+      situation: "It is an emergency and they are stressed",
+      prompt:
+        "The customer called in stressed — no heat, no cooling, or an active leak. How do I keep them calm, get the evidence I need before recommending anything, and give them a safe option for right now and a lasting one, without using the stress to sell?",
+    },
+    es: {
+      situation: "Es una emergencia y están estresados",
+      prompt:
+        "El cliente llamó estresado — sin calefacción, sin aire o con una fuga activa. ¿Cómo lo mantengo tranquilo, reúno la evidencia que necesito antes de recomendar algo, y le doy una opción segura para ahora y otra duradera, sin usar el estrés para vender?",
+    },
+  },
+  {
+    id: 'service-found-something',
+    group: 'service',
+    stage: 'understand',
+    keywords: ['technician', 'found', 'extra', 'add-on', 'recommendation', 'técnico', 'encontré', 'adicional'],
+    en: {
+      situation: "I found something else while I was there",
+      prompt:
+        "I came out for one job and noticed something else that might need work. How do I bring it up — asking permission first, showing what I actually saw, and being clear about what is urgent and what can wait — so it does not feel like a sales pitch they did not ask for?",
+    },
+    es: {
+      situation: "Encontré otra cosa mientras estaba ahí",
+      prompt:
+        "Vine por un trabajo y noté otra cosa que podría necesitar arreglo. ¿Cómo lo menciono — pidiendo permiso primero, mostrando lo que de verdad vi, y siendo claro sobre qué es urgente y qué puede esperar — para que no se sienta como una venta que no pidieron?",
+    },
+  },
+  {
+    id: 'service-financing',
+    group: 'service',
+    stage: 'solve',
+    keywords: ['financing', 'monthly', 'payment', 'afford', 'financiamiento', 'mensual', 'pago'],
+    en: {
+      situation: "They ask what it would be per month",
+      prompt:
+        "The customer asked what the job would cost per month. How do I talk about financing honestly — showing the cash price, the total financed cost, and the terms — so they can compare fairly and do not feel tricked later?",
+    },
+    es: {
+      situation: "Preguntan cuánto sería al mes",
+      prompt:
+        "El cliente preguntó cuánto le costaría el trabajo al mes. ¿Cómo hablo del financiamiento con honestidad — mostrando el precio de contado, el costo total financiado y las condiciones — para que pueda comparar bien y no se sienta engañado después?",
+    },
+  },
+  {
+    id: 'service-three-estimates',
+    group: 'service',
+    stage: 'understand',
+    keywords: ['estimates', 'quotes', 'compare', 'shopping', 'cotizaciones', 'comparar', 'presupuestos'],
+    en: {
+      situation: "They are getting three estimates",
+      prompt:
+        "The customer is comparing my estimate with two others. How do I help them compare scope, exclusions, and what each option actually delivers — without bashing the other companies or dropping my price just to compete?",
+    },
+    es: {
+      situation: "Están pidiendo tres cotizaciones",
+      prompt:
+        "El cliente está comparando mi cotización con otras dos. ¿Cómo le ayudo a comparar el alcance, lo que no incluye y lo que cada opción realmente entrega — sin hablar mal de las otras compañías ni bajar mi precio solo para competir?",
+    },
+  },
+
+  // ── Commercial accounts ───────────────────────────────────────────────────
+  {
+    id: 'commercial-stakeholders',
+    group: 'commercial',
+    stage: 'relate',
+    keywords: ['stakeholders', 'procurement', 'facilities', 'decision', 'committee', 'compras', 'decisión'],
+    en: {
+      situation: "I only know one person at the account",
+      prompt:
+        "I have one contact at a commercial account and I am not sure who else decides. How do I map facilities, operations, finance, and procurement, and find out what each of them cares about, without going around my contact?",
+    },
+    es: {
+      situation: "Solo conozco a una persona en la cuenta",
+      prompt:
+        "Tengo un solo contacto en una cuenta comercial y no sé quién más decide. ¿Cómo identifico a mantenimiento, operaciones, finanzas y compras, y descubro qué le importa a cada uno, sin pasar por encima de mi contacto?",
+    },
+  },
+  {
+    id: 'commercial-incumbent',
+    group: 'commercial',
+    stage: 'understand',
+    keywords: ['incumbent', 'vendor', 'current contractor', 'happy', 'proveedor', 'contratista actual'],
+    en: {
+      situation: "They say they are happy with their current vendor",
+      prompt:
+        "A property or facilities manager told me they already have a vendor and are happy. How do I earn a real conversation — asking about service levels, response times, and reporting — without trashing the incumbent or wasting their time?",
+    },
+    es: {
+      situation: "Dicen que están contentos con su proveedor",
+      prompt:
+        "Un administrador de propiedades o de mantenimiento me dijo que ya tiene proveedor y está contento. ¿Cómo me gano una conversación real — preguntando por niveles de servicio, tiempos de respuesta y reportes — sin criticar al proveedor actual ni hacerle perder el tiempo?",
+    },
+  },
+  {
+    id: 'commercial-go-no-go',
+    group: 'commercial',
+    stage: 'understand',
+    keywords: ['bid', 'go no go', 'rfp', 'pursue', 'licitación', 'propuesta', 'concurso'],
+    en: {
+      situation: "Should we even bid this job?",
+      prompt:
+        "We got an invitation to bid on a commercial project. Walk me through a go or no-go decision: fit, relationships, schedule, terms, margin, and whether we can actually deliver. What would make this a clear no?",
+    },
+    es: {
+      situation: "¿Siquiera deberíamos cotizar este trabajo?",
+      prompt:
+        "Nos invitaron a cotizar un proyecto comercial. Guíame en la decisión de ir o no: si encaja, las relaciones, el calendario, las condiciones, el margen y si de verdad podemos cumplir. ¿Qué haría que fuera un no claro?",
+    },
+  },
+  {
+    id: 'commercial-renewal',
+    group: 'commercial',
+    stage: 'secure',
+    keywords: ['renewal', 'contract', 'service agreement', 'complaints', 'renovación', 'contrato', 'quejas'],
+    en: {
+      situation: "A service agreement is up for renewal",
+      prompt:
+        "A commercial service agreement renews soon and there have been a few complaints. How do I prepare for the renewal conversation — fixing what went wrong first, showing performance facts, and only then talking about anything new?",
+    },
+    es: {
+      situation: "Un contrato de servicio está por renovarse",
+      prompt:
+        "Un contrato de servicio comercial se renueva pronto y ha habido algunas quejas. ¿Cómo me preparo para la conversación de renovación — arreglando primero lo que salió mal, mostrando datos del desempeño, y solo después hablando de algo nuevo?",
+    },
+  },
+  {
+    id: 'commercial-send-info',
+    group: 'commercial',
+    stage: 'secure',
+    keywords: ['send me something', 'email', 'brochure', 'information', 'mándame', 'información', 'folleto'],
+    en: {
+      situation: "They said \"just send me something\"",
+      prompt:
+        "A commercial prospect said to just email them some information. How do I find out what would actually be useful to them, send something worth reading, and agree on a specific next step instead of disappearing into their inbox?",
+    },
+    es: {
+      situation: "Me dijeron \"mándame algo\"",
+      prompt:
+        "Un prospecto comercial me dijo que solo le mandara información por correo. ¿Cómo averiguo qué le sería útil de verdad, le mando algo que valga la pena leer, y acordamos un siguiente paso concreto en lugar de perderme en su bandeja de entrada?",
     },
   },
 ];

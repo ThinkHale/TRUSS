@@ -4,31 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createOrganization } from '@/app/actions/onboarding';
-import { cx } from '@/lib/truss/ui';
-
-const TRADES = [
-  'Roofing',
-  'Siding',
-  'Gutters',
-  'Windows',
-  'Restoration',
-  'Solar',
-  'General contracting',
-];
+import { TradePicker } from './TradePicker';
 
 export function OnboardingForm() {
   const tc = useTranslations('common');
   const router = useRouter();
 
   const [companyName, setCompanyName] = useState('');
-  const [trades, setTrades] = useState<string[]>(['Roofing']);
+  const [trades, setTrades] = useState<string[]>([]);
   const [serviceArea, setServiceArea] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  function toggle(trade: string) {
-    setTrades((prev) => (prev.includes(trade) ? prev.filter((x) => x !== trade) : [...prev, trade]));
-  }
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,24 +64,8 @@ export function OnboardingForm() {
 
       <fieldset>
         <legend className="label">What do you do?</legend>
-        <div className="flex flex-wrap gap-2">
-          {TRADES.map((trade) => (
-            <button
-              key={trade}
-              type="button"
-              onClick={() => toggle(trade)}
-              aria-pressed={trades.includes(trade)}
-              className={cx(
-                'min-h-touch rounded-xl border px-4 text-sm font-semibold transition-colors',
-                trades.includes(trade)
-                  ? 'border-gold-500 bg-gold-500/15 text-gold-600'
-                  : 'border-line-strong text-ink-600',
-              )}
-            >
-              {trade}
-            </button>
-          ))}
-        </div>
+        {/* Trades decide which parts of the TRUSS knowledge base the Coach leans on. */}
+        <TradePicker value={trades} onChange={setTrades} />
       </fieldset>
 
       <div>

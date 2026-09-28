@@ -8,6 +8,7 @@ import { PLANS, isOverrideActive } from '@/lib/billing/plans';
 import { PlanActions } from '@/components/billing/PlanActions';
 import { SignOutButton } from '@/components/SignOutButton';
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { CompanyProfileForm } from '@/components/CompanyProfileForm';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -18,25 +19,28 @@ export default async function SettingsPage({
 }) {
   const t = await getTranslations('common');
   const tNav = await getTranslations('nav');
+  const tSettings = await getTranslations('settings');
   const session = await getSessionContext();
   if (!session) return null;
 
   const { upgraded } = await searchParams;
 
   const supabase = await supabaseServer();
-  const monthStart = new Date();
-  monthStart.setDate(1);
+  // The counters are keyed by the database's month, which is UTC. A server in
+  // another time zone would otherwise read last month's row for part of a day.
+  const now = new Date();
+  const periodMonth = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-01`;
 
   // The org row carries billing state; the counters carry this month's usage;
   // entitlements are read for the plan actually in force rather than the billed
   // one, so an operator grant shows the limits it really unlocked.
-  const [{ data: usage }, { data: entitlements }, { data: org }, { count: seatsUsed }] =
+  const [{ data: usage }, { data: entitlements }, { data: org }, { count: seatsUsed }, { data: orgSettings }] =
     await Promise.all([
       supabase
         .from('usage_counters')
         .select('coach_messages, practice_seconds, research_briefs, campaign_generations')
         .eq('org_id', session.orgId)
-        .eq('period_month', monthStart.toISOString().slice(0, 10))
+        .eq('period_month', periodMonth)
         .maybeSingle(),
       supabase.from('plan_entitlements').select('*').eq('plan', session.plan).maybeSingle(),
       supabase
@@ -50,6 +54,11 @@ export default async function SettingsPage({
         .from('memberships')
         .select('user_id', { count: 'exact', head: true })
         .eq('org_id', session.orgId),
+      supabase
+        .from('org_settings')
+        .select('trades, service_area')
+        .eq('org_id', session.orgId)
+        .maybeSingle(),
     ]);
 
   const hasSubscription = Boolean(org?.stripe_subscription_id);
@@ -93,6 +102,15 @@ export default async function SettingsPage({
         <p className="text-sm capitalize text-ink-500">
           {PLANS[session.plan].name} plan · {session.role}
         </p>
+      </section>
+
+      <section className="card mt-4">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">{tSettings('whatWeDo')}</h2>
+        <CompanyProfileForm
+          trades={orgSettings?.trades ?? []}
+          serviceArea={orgSettings?.service_area ?? []}
+          canEdit={session.role === 'owner' || session.role === 'admin'}
+        />
       </section>
 
       <section className="card mt-4">

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { PracticeRoom } from '@/components/practice/PracticeRoom';
 import { SCENARIOS } from '@/lib/truss/scenarios';
+import { practiceGroup } from '@/lib/truss/practice';
 import { getSessionContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 
@@ -48,6 +49,7 @@ export default async function PracticePage() {
           language: s.language,
           persona: s.persona,
           focusStages: [...s.focusStages],
+          group: practiceGroup(s),
         }))}
         customScenarios={custom.map((s) => ({
           id: s.id,
@@ -57,6 +59,7 @@ export default async function PracticePage() {
           language: s.language as 'en' | 'es',
           persona: 'homeowner' as const,
           focusStages: [],
+          group: 'custom' as const,
         }))}
       />
     </div>

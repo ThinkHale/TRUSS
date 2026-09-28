@@ -7,6 +7,7 @@ import { usePushToTalk } from '@/lib/voice/usePushToTalk';
 import { Scorecard, type ScorecardData } from './Scorecard';
 import { STAGE_COLOR, cx } from '@/lib/truss/ui';
 import type { StageId } from '@/lib/truss/methodology';
+import { PRACTICE_GROUPS, type PracticeGroup } from '@/lib/truss/practice';
 
 export interface ScenarioSummary {
   id: string;
@@ -16,6 +17,8 @@ export interface ScenarioSummary {
   language: 'en' | 'es';
   persona: string;
   focusStages: StageId[];
+  /** Picker shelf; org-authored scenarios have their own. */
+  group: PracticeGroup | 'custom';
 }
 
 type Phase = 'starting' | 'choosing' | 'live' | 'scoring' | 'scored';
@@ -108,9 +111,9 @@ export function PracticeRoom({
 
   const finish = useCallback(async () => {
     ptt.stop();
-    realtime.stop();
     const sessionId = sessionIdRef.current;
     if (!sessionId) {
+      void realtime.stop();
       setPhase('choosing');
       return;
     }
@@ -118,8 +121,10 @@ export function PracticeRoom({
     setPhase('scoring');
     setScoreError(null);
 
-    // Give the last buffered turns a moment to reach the server before scoring.
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    // Wait for the last turns to be saved, not for a guessed delay: the ask
+    // and the next step are usually in the final seconds, and scoring without
+    // them marks a rep down on Secure for something they did say.
+    await realtime.stop();
 
     try {
       const res = await fetch('/api/practice/score', {
@@ -214,11 +219,36 @@ function ScenarioPicker({
   onStartText: (s: ScenarioSummary) => void;
 }) {
   const t = useTranslations('practice');
+  const tStage = useTranslations('stages');
   const all = [...customScenarios, ...scenarios];
+  const [shelf, setShelf] = useState<PracticeGroup | 'custom' | null>(null);
+
+  // Only offer shelves that have something on them.
+  const shelves = [...(customScenarios.length ? (['custom'] as const) : []), ...PRACTICE_GROUPS].filter((g) =>
+    all.some((s) => s.group === g),
+  );
+  const shown = shelf ? all.filter((s) => s.group === shelf) : all;
 
   return (
-    <div className="mt-5 grid gap-4 md:grid-cols-2">
-      {all.map((scenario) => (
+    <>
+    <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label={t('filterLabel')}>
+      {[null, ...shelves].map((g) => (
+        <button
+          key={g ?? 'all'}
+          type="button"
+          onClick={() => setShelf(g)}
+          aria-pressed={shelf === g}
+          className={cx(
+            'min-h-touch rounded-full border px-4 text-sm font-semibold transition-colors',
+            shelf === g ? 'border-transparent bg-gold-500 text-navy-900' : 'border-line-strong text-ink-600 hover:border-gold-500',
+          )}
+        >
+          {g ? t(`groups.${g}`) : t('groups.all')}
+        </button>
+      ))}
+    </div>
+    <div className="mt-4 grid gap-4 md:grid-cols-2">
+      {shown.map((scenario) => (
         <article key={scenario.id} className="card flex flex-col">
           <div className="flex items-start justify-between gap-3">
             <h2 className="text-lg font-bold leading-snug">{scenario.title}</h2>
@@ -241,7 +271,7 @@ function ScenarioPicker({
                   className="rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
                   style={{ backgroundColor: STAGE_COLOR[stage] }}
                 >
-                  {stage}
+                  {tStage(stage)}
                 </span>
               ))}
             </div>
@@ -258,6 +288,7 @@ function ScenarioPicker({
         </article>
       ))}
     </div>
+    </>
   );
 }
 
