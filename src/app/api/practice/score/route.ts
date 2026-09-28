@@ -4,6 +4,11 @@
  * This is the payoff of the whole practice loop: the rep hears what they said
  * scored against the five stages, with a verbatim quote as evidence and one
  * specific thing to change before their next real door.
+ *
+ * Reps can read their sessions and scorecards but not write them (0016): the
+ * scores are what a manager reads, and started_at is what the minutes are
+ * billed from. Ownership is established with the rep's own client, then every
+ * write goes through the service role, scoped to this session and this rep.
  */
 
 import { NextRequest } from 'next/server';
@@ -12,9 +17,9 @@ import { openai, MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
 import { scoringSystemPrompt, buildScoringUserPrompt } from '@/lib/ai/prompts';
 import { scorecardSchema } from '@/lib/truss/scoring';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
-import { supabaseServer } from '@/lib/supabase/server';
-import { customScenario, getScenario, type Scenario } from '@/lib/truss/scenarios';
-import { billableSeconds } from '@/lib/truss/practice';
+import { supabaseAdmin, supabaseServer } from '@/lib/supabase/server';
+import { resolveScenario } from '@/lib/truss/resolveScenario';
+import { billableSeconds, fitTranscript } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -40,12 +45,22 @@ export async function POST(req: NextRequest) {
 
   const { data: practiceSession } = await supabase
     .from('practice_sessions')
-    .select('id, scenario_id, custom_scenario_id, started_at, status, language')
+    .select('id, scenario_id, custom_scenario_id, started_at, status, language, duration_seconds')
     .eq('id', sessionId)
     .eq('user_id', session.userId)
     .maybeSingle();
 
   if (!practiceSession) return Response.json({ error: 'Session not found.' }, { status: 404 });
+
+  // Writes bypass RLS, so each one is pinned to the session and rep verified above.
+  const admin = supabaseAdmin();
+  const updateSession = (patch: Record<string, unknown>) =>
+    admin.from('practice_sessions').update(patch).eq('id', sessionId).eq('user_id', session.userId);
+
+  // A session is billed once. duration_seconds is set exactly when it is —
+  // here, or by the stale-session sweep when the rep opened another one — so a
+  // session swept and billed as abandoned can still be scored without paying twice.
+  const alreadyBilled = practiceSession.duration_seconds != null;
 
   // Scoring is not free, so an already-scored session returns what it has.
   if (practiceSession.status === 'scored') {
@@ -63,18 +78,17 @@ export async function POST(req: NextRequest) {
     .eq('session_id', sessionId)
     .order('created_at', { ascending: true });
 
-  const transcript = (turns ?? []) as { role: 'rep' | 'character'; text: string }[];
-  const repTurns = transcript.filter((t) => t.role === 'rep').length;
+  const fullTranscript = (turns ?? []) as { role: 'rep' | 'character'; text: string }[];
+  // Bounded, so a runaway or padded transcript cannot make scoring arbitrarily expensive.
+  const transcript = fitTranscript(fullTranscript);
+  const repTurns = fullTranscript.filter((t) => t.role === 'rep').length;
 
   if (repTurns < MIN_REP_TURNS) {
-    const seconds = billableSeconds(practiceSession.started_at);
-    await supabase
-      .from('practice_sessions')
-      .update({ status: 'abandoned', ended_at: new Date().toISOString(), duration_seconds: seconds })
-      .eq('id', sessionId);
+    const seconds = alreadyBilled ? practiceSession.duration_seconds! : billableSeconds(practiceSession.started_at);
+    await updateSession({ status: 'abandoned', ended_at: new Date().toISOString(), duration_seconds: seconds });
 
     // Too short to score is not the same as free. The audio still happened.
-    if (seconds > 0) {
+    if (seconds > 0 && !alreadyBilled) {
       await supabase.rpc('record_usage', {
         target_org: session.orgId,
         target_user: session.userId,
@@ -90,10 +104,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  await supabase.from('practice_sessions').update({ status: 'scoring' }).eq('id', sessionId);
+  await updateSession({ status: 'scoring' });
 
-  const scenario =
-    getScenario(practiceSession.scenario_id) ?? (await loadCustomScenario(supabase, practiceSession));
+  const scenario = await resolveScenario(supabase, session.orgId, practiceSession.scenario_id, {
+    customScenarioId: practiceSession.custom_scenario_id,
+  });
 
   if (!scenario) {
     return Response.json({ error: 'Scenario is missing; cannot score.' }, { status: 500 });
@@ -102,7 +117,9 @@ export async function POST(req: NextRequest) {
   const orgContext = await loadOrgContext(session);
   // Capped: this is wall clock since the session opened, which only equals the
   // audio consumed if the rep scored it when they finished.
-  const durationSeconds = billableSeconds(practiceSession.started_at);
+  const durationSeconds = alreadyBilled
+    ? practiceSession.duration_seconds!
+    : billableSeconds(practiceSession.started_at);
 
   let card;
   try {
@@ -119,7 +136,9 @@ export async function POST(req: NextRequest) {
     const raw = completion.choices[0]?.message?.content ?? '{}';
     card = scorecardSchema.parse(JSON.parse(raw));
   } catch {
-    await supabase.from('practice_sessions').update({ status: 'completed' }).eq('id', sessionId);
+    // Left in 'scoring' rather than moved to 'completed': a retry still works,
+    // and if the rep walks away the stale-session sweep still bills the audio.
+    // 'completed' was invisible to that sweep, so a failed score was free.
     return Response.json(
       { error: 'scoring_failed', message: 'Could not score that one. Your transcript is saved — try scoring again.' },
       { status: 502 },
@@ -128,7 +147,7 @@ export async function POST(req: NextRequest) {
 
   const byStage = Object.fromEntries(card.stages.map((s) => [s.stage, s.score]));
 
-  const { data: saved, error: saveError } = await supabase
+  const { data: saved, error: saveError } = await admin
     .from('scorecards')
     .upsert(
       {
@@ -154,39 +173,22 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'Could not save the scorecard.' }, { status: 500 });
   }
 
-  await supabase
-    .from('practice_sessions')
-    .update({
-      status: 'scored',
-      ended_at: new Date().toISOString(),
-      duration_seconds: durationSeconds,
-    })
-    .eq('id', sessionId);
-
-  await supabase.rpc('record_usage', {
-    target_org: session.orgId,
-    target_user: session.userId,
-    event_kind: 'practice_seconds',
-    qty: durationSeconds,
-    model_name: MODELS.realtime,
+  await updateSession({
+    status: 'scored',
+    ended_at: new Date().toISOString(),
+    duration_seconds: durationSeconds,
   });
+
+  if (!alreadyBilled) {
+    await supabase.rpc('record_usage', {
+      target_org: session.orgId,
+      target_user: session.userId,
+      event_kind: 'practice_seconds',
+      qty: durationSeconds,
+      model_name: MODELS.realtime,
+    });
+  }
 
   return Response.json({ scorecard: saved, cached: false });
 }
 
-async function loadCustomScenario(
-  supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  practiceSession: { custom_scenario_id: string | null },
-): Promise<Scenario | null> {
-  if (!practiceSession.custom_scenario_id) return null;
-
-  const { data } = await supabase
-    .from('custom_scenarios')
-    .select('*')
-    .eq('id', practiceSession.custom_scenario_id)
-    .maybeSingle();
-
-  if (!data) return null;
-
-  return customScenario(data);
-}

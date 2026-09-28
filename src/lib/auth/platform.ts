@@ -79,6 +79,20 @@ export const reconcileBootstrapAdmin = cache(async (): Promise<boolean> => {
   if (!bootstrapEmails().includes(email)) return false;
 
   const admin = supabaseAdmin();
+
+  // An address in a token is only an address someone typed at signup. If
+  // email confirmation is ever switched off in Supabase, anyone could register
+  // an operator's address and walk into every tenant. Operator access requires
+  // the auth record to show that address, confirmed.
+  const { data: record, error: lookupError } = await admin.auth.admin.getUserById(userId);
+  const confirmed =
+    !lookupError &&
+    Boolean(record.user?.email_confirmed_at) &&
+    record.user?.email?.toLowerCase() === email;
+  if (!confirmed) {
+    console.warn('platform admin bootstrap refused: email not confirmed', { userId });
+    return false;
+  }
   const { error } = await admin
     .from('platform_admins')
     .upsert({ user_id: userId, note: 'Bootstrapped from PLATFORM_ADMIN_EMAILS' }, { onConflict: 'user_id' });

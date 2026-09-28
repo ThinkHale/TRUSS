@@ -3,8 +3,8 @@
  *
  * Tenant isolation is enforced in the database by Row Level Security, so the
  * request-scoped client below is the one nearly all code should use. The
- * service-role client bypasses RLS and is reserved for Stripe webhooks and
- * knowledge-base ingestion, which run without a user session.
+ * service-role client bypasses RLS and is reserved for the narrow set of writes
+ * described on supabaseAdmin() below.
  */
 
 import { createServerClient } from '@supabase/ssr';
@@ -50,9 +50,11 @@ export const supabaseServer = cache(async () => {
 });
 
 /**
- * Bypasses RLS. Only for trusted server contexts with no user session:
- * Stripe webhooks and knowledge-base ingestion. Never expose to a route a
- * user can reach without an explicit authorization check first.
+ * Bypasses RLS. For trusted server contexts: the Stripe webhook, operator
+ * tooling, and the practice routes' writes to sessions and scorecards, which
+ * reps may read but not change (migration 0016). Never expose to a route a
+ * user can reach without an explicit authorization check first, and pin every
+ * write to the row that check established.
  */
 export function supabaseAdmin() {
   return createClient(

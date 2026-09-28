@@ -14,8 +14,9 @@ import { z } from 'zod';
 import { MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
 import { roleplayCharacterPrompt } from '@/lib/ai/prompts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
-import { supabaseServer } from '@/lib/supabase/server';
-import { customScenario, getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { supabaseAdmin, supabaseServer } from '@/lib/supabase/server';
+import { getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { resolveScenario } from '@/lib/truss/resolveScenario';
 import { billableSeconds } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
@@ -24,28 +25,6 @@ const bodySchema = z.object({
   scenarioId: z.string().min(1).max(100),
   mode: z.enum(['voice', 'text']).default('voice'),
 });
-
-/** Loads an org-authored scenario and shapes it like a built-in one. */
-async function loadCustomScenario(
-  orgId: string,
-  id: string,
-): Promise<Scenario | null> {
-  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuid.test(id)) return null;
-
-  const supabase = await supabaseServer();
-  const { data } = await supabase
-    .from('custom_scenarios')
-    .select('*')
-    .eq('id', id)
-    .eq('org_id', orgId)
-    .eq('is_published', true)
-    .maybeSingle();
-
-  if (!data) return null;
-
-  return customScenario(data);
-}
 
 export async function POST(req: NextRequest) {
   if (!isOpenAIConfigured()) {
@@ -88,8 +67,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const scenario =
-    getScenario(scenarioId) ?? (await loadCustomScenario(session.orgId, scenarioId));
+  const scenario = await resolveScenario(supabase, session.orgId, scenarioId, { requirePublished: true });
   if (!scenario) {
     return Response.json({ error: 'That scenario does not exist.' }, { status: 404 });
   }
@@ -178,10 +156,12 @@ export async function POST(req: NextRequest) {
       detail: detail.slice(0, 300),
     });
 
-    await supabase
+    // Reps cannot update sessions (0016); this one is theirs, created just above.
+    await supabaseAdmin()
       .from('practice_sessions')
-      .update({ status: 'abandoned', ended_at: new Date().toISOString() })
-      .eq('id', practiceSession.id);
+      .update({ status: 'abandoned', ended_at: new Date().toISOString(), duration_seconds: 0 })
+      .eq('id', practiceSession.id)
+      .eq('user_id', session.userId);
 
     return Response.json({ error: 'Could not open a voice session.' }, { status: 502 });
   }
@@ -212,24 +192,31 @@ async function settleStaleSessions(
 ) {
   const { data: stale } = await supabase
     .from('practice_sessions')
-    .select('id, started_at')
+    .select('id, started_at, duration_seconds')
     .eq('user_id', userId)
     .in('status', ['active', 'scoring'])
     .limit(20);
 
-  for (const row of stale ?? []) {
-    const seconds = billableSeconds(row.started_at);
+  // Found with the rep's own client, so these are theirs; closed with the
+  // service role because reps cannot update sessions directly (0016).
+  const admin = supabaseAdmin();
 
-    await supabase
+  for (const row of stale ?? []) {
+    // A session that already carries a duration was billed when it got it.
+    const alreadyBilled = row.duration_seconds != null;
+    const seconds = alreadyBilled ? row.duration_seconds : billableSeconds(row.started_at);
+
+    await admin
       .from('practice_sessions')
       .update({
         status: 'abandoned',
         ended_at: new Date().toISOString(),
         duration_seconds: seconds,
       })
-      .eq('id', row.id);
+      .eq('id', row.id)
+      .eq('user_id', userId);
 
-    if (seconds <= 0) continue;
+    if (alreadyBilled || seconds <= 0) continue;
 
     const { error } = await supabase.rpc('record_usage', {
       target_org: orgId,

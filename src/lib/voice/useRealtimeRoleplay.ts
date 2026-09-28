@@ -57,7 +57,11 @@ export interface RealtimeRoleplay {
   audioBlocked: boolean;
   resumeAudio: () => void;
   start: (scenarioId: string) => Promise<string | null>;
-  stop: () => void;
+  /**
+   * Ends the call and resolves once every recorded turn has reached the
+   * server, so scoring that follows sees the whole conversation.
+   */
+  stop: () => Promise<void>;
   toggleMute: () => void;
   /** Audio element the character's voice plays through. */
   audioRef: React.RefObject<HTMLAudioElement | null>;
@@ -83,6 +87,8 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
   const sessionIdRef = useRef<string | null>(null);
   const startedAtRef = useRef<number>(0);
   const pendingRef = useRef<Turn[]>([]);
+  /** The save in progress, so saves run one at a time and stop() can wait on them. */
+  const flushingRef = useRef<Promise<void>>(Promise.resolve());
   const flushTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const meterRef = useRef<{ ctx: AudioContext; raf: number } | null>(null);
   const startGenRef = useRef(0);
@@ -101,23 +107,33 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     [onError],
   );
 
-  /** Persists buffered turns. Failures are non-fatal; they retry next tick. */
-  const flush = useCallback(async () => {
-    const sessionId = sessionIdRef.current;
-    if (!sessionId || pendingRef.current.length === 0) return;
+  /**
+   * Persists buffered turns. Failures are non-fatal; they retry next tick.
+   *
+   * Saves are chained rather than concurrent. Two in flight at once could land
+   * out of order, and a failed one re-queueing after a later one had already
+   * emptied the buffer left those turns unsaved when the call ended.
+   */
+  const flush = useCallback((): Promise<void> => {
+    const run = async () => {
+      const sessionId = sessionIdRef.current;
+      if (!sessionId || pendingRef.current.length === 0) return;
 
-    const batch = pendingRef.current.splice(0, pendingRef.current.length);
-    try {
-      const response = await fetch('/api/practice/turns', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, turns: batch }),
-      });
-      if (!response.ok) throw new Error('transcript_save_failed');
-    } catch {
-      // Put them back so the next flush tries again.
-      pendingRef.current.unshift(...batch);
-    }
+      const batch = pendingRef.current.splice(0, pendingRef.current.length);
+      try {
+        const response = await fetch('/api/practice/turns', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId, turns: batch }),
+        });
+        if (!response.ok) throw new Error('transcript_save_failed');
+      } catch {
+        // Put them back so the next flush tries again.
+        pendingRef.current.unshift(...batch);
+      }
+    };
+    flushingRef.current = flushingRef.current.then(run, run);
+    return flushingRef.current;
   }, []);
 
   const recordTurn = useCallback(
@@ -228,10 +244,17 @@ export function useRealtimeRoleplay(options: Options = {}): RealtimeRoleplay {
     pcRef.current = null;
   }, []);
 
-  const stop = useCallback(() => {
+  const stop = useCallback(async () => {
     teardown();
-    void flush();
     setState((prev) => (prev === 'error' ? prev : 'ended'));
+    // Drain the transcript before handing back. A job-site connection can take
+    // seconds per request; a couple of retries covers a dropped one without
+    // holding the rep on the scoring screen indefinitely.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await flush();
+      if (pendingRef.current.length === 0) return;
+      await new Promise((resolve) => setTimeout(resolve, 800 * (attempt + 1)));
+    }
   }, [teardown, flush]);
 
   const start = useCallback(

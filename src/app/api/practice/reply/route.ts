@@ -12,7 +12,8 @@ import { openai, MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
 import { roleplayCharacterPrompt } from '@/lib/ai/prompts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
-import { getScenario } from '@/lib/truss/scenarios';
+import { resolveScenario } from '@/lib/truss/resolveScenario';
+import { MAX_SESSION_TURNS } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -40,15 +41,35 @@ export async function POST(req: NextRequest) {
   const supabase = await supabaseServer();
   const { data: practiceSession } = await supabase
     .from('practice_sessions')
-    .select('id, scenario_id, started_at')
+    .select('id, scenario_id, custom_scenario_id, started_at, status')
     .eq('id', sessionId)
     .eq('user_id', session.userId)
     .maybeSingle();
 
   if (!practiceSession) return Response.json({ error: 'Session not found.' }, { status: 404 });
 
-  const scenario = getScenario(practiceSession.scenario_id);
+  // Only a live session takes new turns; a scored one is finished.
+  if (practiceSession.status !== 'active') {
+    return Response.json({ error: 'That practice session has ended.' }, { status: 409 });
+  }
+
+  const scenario = await resolveScenario(supabase, session.orgId, practiceSession.scenario_id, {
+    customScenarioId: practiceSession.custom_scenario_id,
+  });
   if (!scenario) return Response.json({ error: 'Scenario not found.' }, { status: 404 });
+
+  const NEW_TURNS = 2;
+  // Every turn is replayed into scoring, so a session cannot grow without bound.
+  const { count: stored } = await supabase
+    .from('practice_turns')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', sessionId);
+  if ((stored ?? 0) + NEW_TURNS > MAX_SESSION_TURNS) {
+    return Response.json(
+      { error: 'session_full', message: 'This practice session is as long as it can get. End it to get your score.' },
+      { status: 409 },
+    );
+  }
 
   // 1. Whatever the rep said, get it into text.
   let repText: string;

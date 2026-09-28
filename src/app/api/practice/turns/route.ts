@@ -9,6 +9,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getSessionContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
+import { MAX_SESSION_TURNS } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,19 @@ export async function POST(req: NextRequest) {
     .maybeSingle();
 
   if (!owned) return Response.json({ error: 'Session not found.' }, { status: 404 });
+
+  const NEW_TURNS = turns.length;
+  // Every turn is replayed into scoring, so a session cannot grow without bound.
+  const { count: stored } = await supabase
+    .from('practice_turns')
+    .select('id', { count: 'exact', head: true })
+    .eq('session_id', sessionId);
+  if ((stored ?? 0) + NEW_TURNS > MAX_SESSION_TURNS) {
+    return Response.json(
+      { error: 'session_full', message: 'This practice session is as long as it can get. End it to get your score.' },
+      { status: 409 },
+    );
+  }
 
   const { error } = await supabase.from('practice_turns').insert(
     turns.map((t) => ({
