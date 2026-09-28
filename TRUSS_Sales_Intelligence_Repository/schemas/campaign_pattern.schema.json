@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truss.ai/schemas/campaign_pattern.schema.json",
+  "title": "TRUSS campaign pattern",
+  "type": "object",
+  "required": ["id", "name", "audience", "trades", "trigger", "trust", "relate", "understand", "solve", "secure", "required_inputs", "metrics", "prohibited"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^CP-[0-9]{3}$"},
+    "name": {"type": "string"},
+    "audience": {"enum": ["D2C", "B2B", "internal"]},
+    "trades": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "trigger": {"type": "string"},
+    "trust": {"type": "string"},
+    "relate": {"type": "string"},
+    "understand": {"type": "string"},
+    "solve": {"type": "string"},
+    "secure": {"type": "string"},
+    "required_inputs": {"type": "array", "items": {"type": "string"}},
+    "metrics": {"type": "array", "items": {"type": "string"}},
+    "prohibited": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

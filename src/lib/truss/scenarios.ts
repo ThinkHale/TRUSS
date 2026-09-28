@@ -5,12 +5,29 @@
  * real patterns in storm-restoration and home-services selling: the skeptical
  * homeowner, the already-signed homeowner, the adjuster, the commercial
  * property manager. Difficulty controls how much resistance the character puts up.
+ *
+ * The TRUSS Sales Intelligence Repository's scenario library is appended after
+ * the hand-written set, so reps can practice every trade and sales motion the
+ * training data covers — HVAC, plumbing, electrical, remodeling, recurring
+ * services, and commercial pursuits — scored against that library's own
+ * expected behaviors and critical failures.
  */
 
 import type { StageId } from './methodology';
+import { detectContext, libraryScenarios, matchObjections, type LibraryScenario } from './knowledge';
 
 export type Difficulty = 'easy' | 'moderate' | 'hard';
 export type Persona = 'homeowner' | 'adjuster' | 'property-manager' | 'business-owner';
+
+/** Sales motions from the TRUSS context router. */
+export type Motion =
+  | 'urgent_service'
+  | 'planned_replacement'
+  | 'remodeling'
+  | 'technician_recommendation'
+  | 'canvassing_storm'
+  | 'commercial_service'
+  | 'commercial_project';
 
 export interface Scenario {
   id: string;
@@ -27,15 +44,29 @@ export interface Scenario {
   difficulty: Difficulty;
   /** Which stages this scenario is designed to exercise. */
   focusStages: StageId[];
-  /** Trade vertical. Used for filtering and for enterprise scenario libraries. */
-  trade: 'roofing' | 'general' | 'exterior' | 'restoration';
+  /** Trade vertical, using the repository's trade tags where one applies. */
+  trade: string;
+  /** Sales motion. Routes the knowledge base retrieval for roleplay and scoring. */
+  motion: Motion;
   /** Voice character for the Realtime session. */
   voice: 'alloy' | 'ash' | 'ballad' | 'coral' | 'echo' | 'sage' | 'shimmer' | 'verse';
   /** Character speaks Spanish. Lets reps practice bilingual doors. */
   language: 'en' | 'es';
+  /** Present on scenarios from the repository library. */
+  library?: {
+    /** Repository scenario ID, e.g. SC-004. */
+    sourceId: string;
+    /** Repository difficulty level, 1 (guided) to 4 (adverse). */
+    level: number;
+    channel: string;
+    expectedBehaviors: string[];
+    acceptableOutcomes: string[];
+    criticalFailures: string[];
+  };
 }
 
-export const SCENARIOS: readonly Scenario[] = [
+/** Written in-house for storm restoration, the product's original market. */
+const HANDWRITTEN: readonly Scenario[] = [
   {
     id: 'cold-door-hail',
     slug: 'coldDoorHail',
@@ -64,6 +95,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'moderate',
     focusStages: ['trust', 'relate', 'understand'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'ash',
     language: 'en',
   },
@@ -94,6 +126,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'hard',
     focusStages: ['solve', 'secure'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'coral',
     language: 'en',
   },
@@ -123,6 +156,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'hard',
     focusStages: ['understand', 'solve'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'echo',
     language: 'en',
   },
@@ -152,6 +186,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'moderate',
     focusStages: ['trust', 'relate', 'solve'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'sage',
     language: 'es',
   },
@@ -180,6 +215,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'hard',
     focusStages: ['trust', 'relate', 'secure'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'verse',
     language: 'en',
   },
@@ -209,6 +245,7 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'hard',
     focusStages: ['understand', 'solve', 'secure'],
     trade: 'general',
+    motion: 'commercial_project',
     voice: 'shimmer',
     language: 'en',
   },
@@ -236,10 +273,161 @@ export const SCENARIOS: readonly Scenario[] = [
     difficulty: 'easy',
     focusStages: ['understand', 'secure'],
     trade: 'roofing',
+    motion: 'canvassing_storm',
     voice: 'ballad',
     language: 'en',
   },
-] as const;
+];
+
+// ─── Repository scenario library ──────────────────────────────────────────────
+
+const TRADE_LABELS: Record<string, string> = {
+  hvac: 'HVAC',
+  plumbing: 'Plumbing',
+  electrical: 'Electrical',
+  roofing: 'Roofing',
+  remodeling: 'Remodeling',
+  pest: 'Pest control',
+  landscaping: 'Landscaping',
+  mechanical: 'Mechanical',
+  cleaning: 'Commercial cleaning',
+  solar: 'Solar',
+  general_contracting: 'General contracting',
+  windows_siding: 'Windows and siding',
+  restoration: 'Restoration',
+};
+
+const MOTION_LABELS: Record<Motion, string> = {
+  urgent_service: 'urgent service call',
+  planned_replacement: 'planned purchase',
+  remodeling: 'planned project',
+  technician_recommendation: 'technician recommendation',
+  canvassing_storm: 'storm canvassing',
+  commercial_service: 'commercial service account',
+  commercial_project: 'commercial project pursuit',
+};
+
+const CHANNELS: Record<string, { label: string; scene: string }> = {
+  field_visit: { label: 'on site', scene: 'You are on site with the buyer.' },
+  door: { label: 'at the door', scene: 'You are at the front door.' },
+  meeting: { label: 'meeting', scene: 'You are in a scheduled meeting with the buyer.' },
+  phone: { label: 'phone', scene: 'You are on the phone with the buyer.' },
+  pre_call: { label: 'first call', scene: 'You are making a first call to the only contact you have.' },
+  bid_invitation: { label: 'bid invitation', scene: 'You are talking with the contractor who sent the invitation.' },
+  proposal_review: { label: 'proposal review', scene: 'You are reviewing your proposal with the buyer.' },
+  go_no_go: { label: 'go or no-go', scene: 'You are talking with the owner representative who wants your firm to bid.' },
+  renewal_review: { label: 'renewal review', scene: 'You are in the renewal review with the client.' },
+};
+
+/** Where each motion's conversations usually break, per the context router. */
+const MOTION_FOCUS: Record<Motion, StageId[]> = {
+  urgent_service: ['trust', 'understand', 'solve'],
+  planned_replacement: ['understand', 'solve', 'secure'],
+  remodeling: ['understand', 'solve', 'secure'],
+  technician_recommendation: ['trust', 'understand', 'solve'],
+  canvassing_storm: ['trust', 'relate', 'understand'],
+  commercial_service: ['relate', 'understand', 'secure'],
+  commercial_project: ['understand', 'solve', 'secure'],
+};
+
+const LEVEL_NAMES = ['', 'guided', 'realistic', 'complex', 'adverse'];
+const VOICES: Scenario['voice'][] = ['ash', 'coral', 'echo', 'sage', 'verse', 'shimmer', 'ballad', 'alloy'];
+
+function fromLibrary(sc: LibraryScenario, index: number): Scenario {
+  const motion = (sc.motion in MOTION_LABELS ? sc.motion : 'planned_replacement') as Motion;
+  const channel = CHANNELS[sc.channel] ?? { label: sc.channel.replace(/_/g, ' '), scene: '' };
+  const trade = TRADE_LABELS[sc.trade] ?? sc.trade.replace(/_/g, ' ');
+  const level = Math.min(Math.max(sc.difficulty, 1), 4);
+  const commercial = motion.startsWith('commercial');
+
+  return {
+    id: `library-${sc.id.toLowerCase()}`,
+    slug: 'library',
+    persona: motion === 'commercial_project' ? 'business-owner' : commercial ? 'property-manager' : 'homeowner',
+    title: `${trade}: ${MOTION_LABELS[motion]}${sc.channel === 'field_visit' ? '' : ` (${channel.label})`}`,
+    setup: `${sc.visible_situation} ${channel.scene}`.trim(),
+    characterBrief:
+      `You are the buyer in this situation: ${sc.visible_situation}\n` +
+      `${channel.scene ? `Setting: ${channel.scene.replace(/^You are/, 'The seller is')}\n` : ''}` +
+      `Your state of mind: ${sc.buyer_state}.\n` +
+      `What you care about most: ${sc.priorities.join('; ')}.\n` +
+      `Your constraints: ${sc.constraints.join('; ')}.\n` +
+      `Private facts. These are true, but you reveal each one only when the seller earns it with a ` +
+      `relevant question or real evidence:\n${sc.hidden_facts.map((f) => `  - ${f}`).join('\n')}\n` +
+      (commercial
+        ? `Pick the role the seller would realistically be speaking with here — a facilities lead, ` +
+          `operations director, property manager, estimator, or owner representative — and hold it.\n`
+        : '') +
+      `Choose a first name that fits and keep it. Your realistic outcomes are: ` +
+      `${sc.acceptable_outcomes.join(', ')}. Which one you reach depends on how well the seller handles you.`,
+    // The repository's objection records that fit this buyer, in its words.
+    // A commercial buyer's stakeholder objection is the boss, not the spouse.
+    objections: matchObjections(
+      [sc.visible_situation, sc.buyer_state, ...sc.priorities, ...sc.constraints, ...sc.hidden_facts],
+      3,
+      commercial ? 'commercial' : 'residential',
+    ).map((o) => (commercial && o.family === 'stakeholder' ? o.utterances[1] : o.utterances[0])),
+    difficulty: level <= 1 ? 'easy' : level === 2 ? 'moderate' : 'hard',
+    focusStages: MOTION_FOCUS[motion],
+    trade: sc.trade,
+    motion,
+    voice: VOICES[index % VOICES.length],
+    language: 'en',
+    library: {
+      sourceId: sc.id,
+      level,
+      channel: sc.channel,
+      expectedBehaviors: sc.expected_behaviors,
+      acceptableOutcomes: sc.acceptable_outcomes,
+      criticalFailures: sc.critical_failures,
+    },
+  };
+}
+
+export const SCENARIOS: readonly Scenario[] = [
+  ...HANDWRITTEN,
+  ...libraryScenarios().map(fromLibrary),
+];
+
+/**
+ * Shapes an org-authored `custom_scenarios` row like a built-in scenario.
+ * Trade and motion are inferred from its text so retrieval and scoring still
+ * route it to the right part of the knowledge base.
+ */
+export function customScenario(row: {
+  id: string;
+  persona: Persona;
+  title: string;
+  setup: string;
+  character_brief: string;
+  objections: string[] | null;
+  difficulty: Difficulty;
+  focus_stages: StageId[] | null;
+  voice: Scenario['voice'];
+  language: 'en' | 'es';
+}): Scenario {
+  const context = detectContext(`${row.title} ${row.setup} ${row.character_brief}`);
+  return {
+    id: row.id,
+    slug: 'custom',
+    persona: row.persona,
+    title: row.title,
+    setup: row.setup,
+    characterBrief: row.character_brief,
+    objections: row.objections ?? [],
+    difficulty: row.difficulty,
+    focusStages: row.focus_stages ?? [],
+    trade: context.trades[0] ?? 'general',
+    motion: (context.motions[0] as Motion | undefined) ?? 'planned_replacement',
+    voice: row.voice,
+    language: row.language,
+  };
+}
+
+/** The repository's name for a difficulty level, for the character prompt. */
+export function levelName(level: number): string {
+  return LEVEL_NAMES[level] ?? 'realistic';
+}
 
 export function getScenario(id: string): Scenario | undefined {
   return SCENARIOS.find((s) => s.id === id);

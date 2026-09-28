@@ -13,7 +13,7 @@ import { scoringSystemPrompt, buildScoringUserPrompt } from '@/lib/ai/prompts';
 import { scorecardSchema } from '@/lib/truss/scoring';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
-import { getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { customScenario, getScenario, type Scenario } from '@/lib/truss/scenarios';
 import { billableSeconds } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.2,
       response_format: { type: 'json_object' },
       messages: [
-        { role: 'system', content: scoringSystemPrompt(scenario, orgContext) },
+        { role: 'system', content: scoringSystemPrompt(scenario, orgContext, transcript).system },
         { role: 'user', content: buildScoringUserPrompt(transcript) },
       ],
     });
@@ -188,18 +188,5 @@ async function loadCustomScenario(
 
   if (!data) return null;
 
-  return {
-    id: data.id,
-    slug: 'custom',
-    persona: data.persona,
-    title: data.title,
-    setup: data.setup,
-    characterBrief: data.character_brief,
-    objections: data.objections ?? [],
-    difficulty: data.difficulty,
-    focusStages: data.focus_stages ?? [],
-    trade: 'general',
-    voice: data.voice,
-    language: data.language,
-  } as Scenario;
+  return customScenario(data);
 }

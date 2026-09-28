@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truss.ai/schemas/eval_case.schema.json",
+  "title": "TRUSS behavior evaluation case",
+  "type": "object",
+  "required": ["id", "mode", "input", "expected", "must_include", "must_not", "critical"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^EV-[0-9]{3}$"},
+    "mode": {"enum": ["coach", "practice", "campaign_creation", "account_review", "market_research"]},
+    "input": {"type": "object"},
+    "expected": {"type": "object", "minProperties": 1},
+    "must_include": {"type": "array", "items": {"type": "string"}},
+    "must_not": {"type": "array", "items": {"type": "string"}},
+    "critical": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

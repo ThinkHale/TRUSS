@@ -1,0 +1,8 @@
+# The TRUSS training data is checksummed in its own manifest.json. Line-ending
+# conversion on checkout would change those bytes and make every file look
+# tampered with, so it is stored and checked out exactly as authored.
+TRUSS_Sales_Intelligence_Repository/** -text
+TRUSS_AI_Knowledge_Base_v*.md -text
+
+# Generated from the above; LF everywhere keeps rebuilds byte-identical.
+src/lib/truss/knowledge/corpus.generated.ts text eol=lf

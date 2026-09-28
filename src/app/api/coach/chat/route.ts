@@ -9,8 +9,9 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { openai, MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
-import { coachSystemPrompt, stageCoachPrompt } from '@/lib/ai/prompts';
+import { coachSystemPrompt } from '@/lib/ai/prompts';
 import { retrieveKnowledge } from '@/lib/ai/knowledge';
+import { citationLabel } from '@/lib/truss/knowledge';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { STAGE_IDS, type StageId } from '@/lib/truss/methodology';
@@ -98,9 +99,13 @@ export async function POST(req: NextRequest) {
   ]);
   orgContext.knowledge = knowledge;
 
-  const system = stageFocus
-    ? stageCoachPrompt(stageFocus, orgContext)
-    : coachSystemPrompt(orgContext);
+  // A follow-up like "what do I say then?" only means something next to the
+  // turn before it, so the previous rep message rides along into retrieval.
+  const lastRepTurn = [...priorTurns].reverse().find((m) => m.role === 'user')?.content ?? '';
+  const { system, grounding } = coachSystemPrompt(orgContext, {
+    query: `${lastRepTurn}\n${message}`,
+    stageFocus,
+  });
 
   const { error: messageError } = await supabase.from('coach_messages').insert({
     conversation_id: conversationId,
@@ -128,7 +133,12 @@ export async function POST(req: NextRequest) {
     ],
   });
 
-  const citations = (orgContext.knowledge ?? []).map((k) => k.source);
+  // Company sources first, then the TRUSS knowledge base items the answer was
+  // grounded in — stored with the message as the response trace.
+  const citations = [
+    ...(orgContext.knowledge ?? []).map((k) => k.source),
+    ...grounding.map(citationLabel),
+  ];
   const encoder = new TextEncoder();
   let full = '';
 

@@ -9,9 +9,11 @@
  *   S — Solve      Make the complex simple and show the path forward.
  *   S — Secure     Lock in the commitment and the next concrete step.
  *
- * This file is the single source of truth. The Coach prompts, the roleplay
- * scorecard, the practice scenarios, and the progress UI all read from here,
- * so the methodology stays consistent everywhere it surfaces.
+ * This file is the field manual the UI presents: stage cards, example language,
+ * and progress. The AI takes only stage ids and names from here. Coach, roleplay, scoring, campaigns,
+ * research, and account briefs are grounded in the TRUSS AI Knowledge Base and
+ * the Sales Intelligence Repository through @/lib/truss/knowledge, which is the
+ * authority wherever the two differ.
  */
 
 export type StageId = 'trust' | 'relate' | 'understand' | 'solve' | 'secure';
@@ -376,22 +378,3 @@ export function getStage(id: StageId): Stage {
 
 /** "Trust · Relate · Understand · Solve · Secure" */
 export const TRUSS_EXPANSION = STAGES.map((s) => s.name).join(' · ');
-
-/**
- * Compact methodology reference injected into every Coach and scoring prompt.
- * Kept terse on purpose — the full prose above is for humans, this is for tokens.
- */
-export function methodologyBriefing(): string {
-  return STAGES.map((stage) => {
-    const objectives = stage.objectives.map((o) => `    - ${o}`).join('\n');
-    const failures = stage.failureModes.map((f) => `    - ${f}`).join('\n');
-    return [
-      `${stage.letter} — ${stage.name.toUpperCase()}: ${stage.oneLiner}`,
-      `  Purpose: ${stage.purpose}`,
-      `  Objectives:`,
-      objectives,
-      `  Common failures:`,
-      failures,
-    ].join('\n');
-  }).join('\n\n');
-}

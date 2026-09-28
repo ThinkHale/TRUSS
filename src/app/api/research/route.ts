@@ -80,12 +80,16 @@ export async function POST(req: NextRequest) {
   if (isOpenAIConfigured()) {
     try {
       const orgContext = await loadOrgContext(session);
+      const { system } = researchSystemPrompt(
+        orgContext,
+        `${location.formattedAddress} ${storms?.summary ?? ''} ${includeCommercial ? 'commercial properties' : ''}`,
+      );
       const completion = await openai().chat.completions.create({
         model: MODELS.structured,
         temperature: 0.4,
         max_tokens: 1200,
         messages: [
-          { role: 'system', content: researchSystemPrompt(orgContext) },
+          { role: 'system', content: system },
           { role: 'user', content: buildResearchPrompt({
               address: location.formattedAddress,
               radiusMiles,

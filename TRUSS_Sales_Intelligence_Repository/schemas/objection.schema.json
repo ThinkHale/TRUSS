@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truss.ai/schemas/objection.schema.json",
+  "title": "TRUSS objection family",
+  "type": "object",
+  "required": ["id", "family", "utterances", "likely_meanings", "clarifiers", "response_directions", "prohibited", "beams"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^OB-[0-9]{3}$"},
+    "family": {"type": "string"},
+    "utterances": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "likely_meanings": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "clarifiers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "response_directions": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "prohibited": {"type": "array", "items": {"type": "string"}},
+    "beams": {"type": "array", "items": {"enum": ["trust", "relate", "understand", "solve", "secure"]}, "minItems": 1, "uniqueItems": true}
+  },
+  "additionalProperties": false
+}

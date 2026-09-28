@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truss.ai/schemas/scenario.schema.json",
+  "title": "TRUSS practice scenario",
+  "type": "object",
+  "required": ["id", "trade", "motion", "channel", "difficulty", "visible_situation", "buyer_state", "hidden_facts", "priorities", "constraints", "expected_behaviors", "acceptable_outcomes", "critical_failures"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^SC-[0-9]{3}$"},
+    "trade": {"type": "string"},
+    "motion": {"enum": ["urgent_service", "planned_replacement", "technician_recommendation", "remodeling", "canvassing_storm", "commercial_service", "commercial_project", "recurring_service"]},
+    "channel": {"type": "string"},
+    "difficulty": {"type": "integer", "minimum": 1, "maximum": 5},
+    "visible_situation": {"type": "string", "minLength": 20},
+    "buyer_state": {"type": "string"},
+    "hidden_facts": {"type": "array", "items": {"type": "string"}},
+    "priorities": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "expected_behaviors": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "acceptable_outcomes": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "critical_failures": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": false
+}

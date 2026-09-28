@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://truss.ai/schemas/knowledge_unit.schema.json",
+  "title": "TRUSS knowledge unit",
+  "type": "object",
+  "required": ["id", "title", "content", "beams", "modes", "trades", "motions", "buyers", "stages", "claim_type", "evidence_grade", "source_ids", "applies_when", "exceptions", "prohibited", "reviewed_at", "version"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^KU-[0-9]{3}$"},
+    "title": {"type": "string", "minLength": 3},
+    "content": {"type": "string", "minLength": 20},
+    "beams": {"type": "array", "items": {"enum": ["all", "trust", "relate", "understand", "solve", "secure"]}, "minItems": 1, "uniqueItems": true},
+    "modes": {"type": "array", "items": {"enum": ["coach", "practice", "campaign_creation", "account_review", "market_research"]}, "minItems": 1, "uniqueItems": true},
+    "motions": {"type": "array", "items": {"enum": ["all", "urgent_service", "planned_replacement", "technician_recommendation", "remodeling", "canvassing_storm", "commercial_service", "commercial_project", "recurring_service"]}, "minItems": 1},
+    "trades": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "buyers": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "stages": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "claim_type": {"enum": ["fact", "inference", "recommendation", "metric", "compliance", "practitioner_guidance", "benchmark_policy", "policy", "implementation"]},
+    "evidence_grade": {"enum": ["A", "B", "C", "D"]},
+    "source_ids": {"type": "array", "items": {"type": "string", "pattern": "^S[0-9]{3}$"}, "uniqueItems": true},
+    "applies_when": {"type": "string"},
+    "exceptions": {"type": "string"},
+    "prohibited": {"type": "string"},
+    "reviewed_at": {"type": "string", "format": "date"},
+    "version": {"type": "string"}
+  },
+  "additionalProperties": true
+}

@@ -4,11 +4,16 @@
   "private": true,
   "description": "TRUSS \u2014 Sales intelligence for the Trades",
   "scripts": {
+    "predev": "npm run knowledge:build",
     "dev": "next dev",
+    "prebuild": "npm run knowledge:build",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "knowledge:build": "node scripts/build-truss-knowledge.mjs",
+    "knowledge:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-register.mjs scripts/truss-evals.mts",
+    "knowledge:eval": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local --import ./scripts/ts-register.mjs scripts/truss-evals.mts --live"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

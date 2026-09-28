@@ -1,9 +1,11 @@
 /**
  * Roleplay scoring.
  *
- * After a practice conversation, the transcript is scored stage by stage
- * against the behaviors defined in methodology.ts. The rubric is generated
- * from the methodology rather than duplicated, so the two can never drift.
+ * After a practice conversation, the transcript is scored beam by beam
+ * against the TRUSS Method in the knowledge base (see scoringSystemPrompt in
+ * @/lib/ai/prompts). This file holds only what the client also needs: the
+ * score bands and the scorecard shape. It must not import the knowledge base,
+ * because the Scorecard component ships it to the browser.
  */
 
 import { STAGES, type StageId } from './methodology';
@@ -15,7 +17,7 @@ export const SCORE_BANDS = [
   { score: 1, label: 'Missed', meaning: 'Attempted, but the objectives were not met.' },
   { score: 2, label: 'Partial', meaning: 'Some objectives met, key ones missed.' },
   { score: 3, label: 'Solid', meaning: 'Objectives met. Would hold up on a real door.' },
-  { score: 4, label: 'Strong', meaning: 'Objectives met and the homeowner visibly moved.' },
+  { score: 4, label: 'Strong', meaning: 'Objectives met and the buyer visibly moved.' },
 ] as const;
 
 export const MAX_STAGE_SCORE = 4;
@@ -53,18 +55,4 @@ export function totalScore(card: Scorecard): number {
 
 export function weakestStage(card: Scorecard): StageScore {
   return card.stages.reduce((min, s) => (s.score < min.score ? s : min), card.stages[0]);
-}
-
-/** Rubric text for the scoring prompt, generated from the methodology. */
-export function scoringRubric(): string {
-  const bands = SCORE_BANDS.map((b) => `  ${b.score} = ${b.label}: ${b.meaning}`).join('\n');
-
-  const stages = STAGES.map((stage) => {
-    const criteria = stage.behaviors
-      .map((b) => `    - ${b.behavior} (looks like: ${b.evidence})`)
-      .join('\n');
-    return `${stage.name.toUpperCase()} (${stage.id})\n  Score this stage on whether the rep:\n${criteria}`;
-  }).join('\n\n');
-
-  return `SCORE BANDS\n${bands}\n\nSTAGE CRITERIA\n${stages}`;
 }

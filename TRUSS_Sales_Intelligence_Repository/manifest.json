@@ -1,0 +1,253 @@
+{
+  "name": "TRUSS Sales Intelligence Repository",
+  "version": "1.0.0",
+  "built_at": "2026-09-09T17:16:18+00:00",
+  "file_count_excluding_manifest": 49,
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 705,
+      "sha256": "5e2bc049f928855a6ff6e9558a8983e4a1bc7de18bef2c02c12c9f9a500dfeb1"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "bytes": 1722,
+      "sha256": "0eccd284774ee03318d726e03bbbfe14da5dfb38018204deb7085f7ba9924ee0"
+    },
+    {
+      "path": "README.md",
+      "bytes": 4165,
+      "sha256": "c3856a18b0cfdcc2355332660243e2f5e03e186a3dc252cdccc5761e43012f03"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
+    },
+    {
+      "path": "data/campaign_patterns.jsonl",
+      "bytes": 8608,
+      "sha256": "c221e94c67731b09e7d51e617609030007bc1d73a5343e370b5ae743d5e74469"
+    },
+    {
+      "path": "data/eval_cases.jsonl",
+      "bytes": 11639,
+      "sha256": "f092cd903050eb94b28e6a9272600cd838faf04b970a7e06548a3e915f58bd11"
+    },
+    {
+      "path": "data/knowledge_units.jsonl",
+      "bytes": 38763,
+      "sha256": "e5c5191efa8e4b519e681e740e1a601bc2bdccdd4e2c16fc3640fc7088c56927"
+    },
+    {
+      "path": "data/metrics.csv",
+      "bytes": 10163,
+      "sha256": "3c72d204e2f06e22ba7e653eeb5728213301c579da7bbab3289704d19db0e15c"
+    },
+    {
+      "path": "data/objections.jsonl",
+      "bytes": 10046,
+      "sha256": "64060401e438096c11e44c7c10f56c1244676b2a9388f59b00930229a6874f66"
+    },
+    {
+      "path": "data/scenarios.jsonl",
+      "bytes": 16788,
+      "sha256": "f622a352082aaf974cfa098da7aa9316f57bc269d5bb1f16573faeb735dff94f"
+    },
+    {
+      "path": "data/source_registry.csv",
+      "bytes": 20583,
+      "sha256": "5a22c722e5496081e66014b787e44c0054aad052132137372d03246c9b839cc5"
+    },
+    {
+      "path": "dist/TRUSS_AI_Knowledge_Base_v1.0.0.md",
+      "bytes": 134627,
+      "sha256": "b954d5293ad80c38844daa09f63e8f2a747c1db89cf388f7e72aaab205a67067"
+    },
+    {
+      "path": "docs/00_governance/evidence_rights_and_maintenance.md",
+      "bytes": 3509,
+      "sha256": "7f0c4549b3f491dd96dd75464b0a6b193d3ac915717e3175d7b0adf4da90d39f"
+    },
+    {
+      "path": "docs/01_method/context_router.md",
+      "bytes": 4082,
+      "sha256": "4838d6c32c2140b064c0fa0cdeb03be99cfe7d3fbb521d195804febd1d9c2c01"
+    },
+    {
+      "path": "docs/01_method/truss_method.md",
+      "bytes": 5501,
+      "sha256": "158936d389e68f272ad70eec5d13536f9722ebc215779157dc0151391071b045"
+    },
+    {
+      "path": "docs/02_doctrine/commercial_sales.md",
+      "bytes": 5383,
+      "sha256": "345ce7010254bec4ad6af6adca19e1a7ab219487ad53f1c556cf1ec4ea10e37e"
+    },
+    {
+      "path": "docs/02_doctrine/front_office_followup_and_handoff.md",
+      "bytes": 2345,
+      "sha256": "ae955a91ef0efeffe9bb648228109978743bb893cba8f380707bff69a7cd16d5"
+    },
+    {
+      "path": "docs/02_doctrine/objections_negotiation_and_decisions.md",
+      "bytes": 3380,
+      "sha256": "d01fa968b90437b99181253c97bc3c1124024ec7458809bc7e5d302bd3530f67"
+    },
+    {
+      "path": "docs/02_doctrine/residential_sales.md",
+      "bytes": 5140,
+      "sha256": "68cac4ccb06a432c173b0a01a72457dbf6dbfcf8b0e546b8fb02f0e0cb25144f"
+    },
+    {
+      "path": "docs/03_modes/account_review.md",
+      "bytes": 2851,
+      "sha256": "e1ffa5e7ece66091e51bc37848e93f8e3c5fc641b436906a26ee7315a61c4bdb"
+    },
+    {
+      "path": "docs/03_modes/campaign_creation.md",
+      "bytes": 3204,
+      "sha256": "8de934e4e78f55695f1f5ff3b6171c313ffad941292dfaf12810929faa15dfda"
+    },
+    {
+      "path": "docs/03_modes/coach.md",
+      "bytes": 2693,
+      "sha256": "1c899748a9c4b2386406dda3fd04c169ce9b1279a935e762ed09234176414f0a"
+    },
+    {
+      "path": "docs/03_modes/market_research.md",
+      "bytes": 3859,
+      "sha256": "dc2b81c96ee666a5a254430051db2804619459091d972cd900d0f3760791fa44"
+    },
+    {
+      "path": "docs/03_modes/practice.md",
+      "bytes": 2462,
+      "sha256": "6bd1a121575ca7601b75ecd495fe8951162a425636891608395092b6e66f950e"
+    },
+    {
+      "path": "docs/04_trades/commercial_specialty_contracting.md",
+      "bytes": 2918,
+      "sha256": "9156579a1b22b1a860e184d677969e8847ccb18387cbf8a1890c47e0d55c1006"
+    },
+    {
+      "path": "docs/04_trades/electrical.md",
+      "bytes": 2291,
+      "sha256": "17fbd66f6fd896a262ff7ae00c53a0e1ed4aaec3d59523429a8f2aa1df4e6c4a"
+    },
+    {
+      "path": "docs/04_trades/hvac.md",
+      "bytes": 3060,
+      "sha256": "77bb652a600430ca1bb399f7286d61c1a64fea3282b7fd7dbc977e4cfc588d34"
+    },
+    {
+      "path": "docs/04_trades/plumbing.md",
+      "bytes": 2380,
+      "sha256": "dd94bcf1fdf138d6144e9731103cf3b70e4c4e8dc1319d93883242252a04b675"
+    },
+    {
+      "path": "docs/04_trades/recurring_property_services.md",
+      "bytes": 2325,
+      "sha256": "9e04210184c3b19f7a43c4b03a9d10eb0a0c6a29e25b8fc1846ecf73259fd5f1"
+    },
+    {
+      "path": "docs/04_trades/remodeling_and_general_contracting.md",
+      "bytes": 2584,
+      "sha256": "93a9ecccdb18dfd12c5894e3f7a6c0818eec0dab470dbc86421845d70ed8cfe4"
+    },
+    {
+      "path": "docs/04_trades/roofing_and_exteriors.md",
+      "bytes": 2641,
+      "sha256": "bd5abe6207c7c1b327a712b44f5c5118ef318777496a0f3b713c092b4b362221"
+    },
+    {
+      "path": "docs/05_metrics/metric_dictionary.md",
+      "bytes": 6848,
+      "sha256": "e704e5b21f8b8cf6345b2ad710b8cf36600c0bb45fa1b1607c8069dc7646e74e"
+    },
+    {
+      "path": "docs/05_metrics/scorecards_and_benchmarks.md",
+      "bytes": 4578,
+      "sha256": "ccdd07a170387cf3a65f5964efa3927162c83ebc47a20da09449f75fda464932"
+    },
+    {
+      "path": "docs/06_training/eight_week_curriculum.md",
+      "bytes": 6507,
+      "sha256": "2b7b1591189ad32ec4c262aadf0dad99d57bdaae428ab7d773c304abfb63331d"
+    },
+    {
+      "path": "docs/07_implementation/ingestion_retrieval_and_versioning.md",
+      "bytes": 5164,
+      "sha256": "8cfc0d191cd079eefac818cce018ab4e6882baa84647b47073ce75388304adae"
+    },
+    {
+      "path": "docs/07_implementation/prompt_and_output_contracts.md",
+      "bytes": 4325,
+      "sha256": "91f8f440c19858fef3718672f58f5b05139066baaaffef164eb7a1a0ec325c6f"
+    },
+    {
+      "path": "docs/07_implementation/retrieval_queries_and_routing_examples.md",
+      "bytes": 2583,
+      "sha256": "034ed9389f750293649a8493dabee216aa9d893be348b1da03ef6657d0865588"
+    },
+    {
+      "path": "docs/08_research/master_synthesis.md",
+      "bytes": 28013,
+      "sha256": "693348935ae84bd9f86c88269957430682e22aca3a295518363f23bee42ddcd8"
+    },
+    {
+      "path": "docs/08_research/practitioner_and_platform_ingestion_queue.md",
+      "bytes": 7568,
+      "sha256": "d42e41de988f29b4f5a1c7d9163fff3a7440f86375bec35b9ff49d161cb656bd"
+    },
+    {
+      "path": "reference_foundation/TRUSS_Trades_Sales_Knowledge_Base.docx",
+      "bytes": 54854,
+      "sha256": "149eab5cf45001793788d9be2bbbdfd372730269d947a6b456f8c4cb5c189464"
+    },
+    {
+      "path": "reference_foundation/TRUSS_Trades_Sales_Source_Library.xlsx",
+      "bytes": 21975,
+      "sha256": "8fc56c0f3cde6f335d14240112a8e1f57a2819f774b7dae31eb5bcd65405f17e"
+    },
+    {
+      "path": "schemas/campaign_pattern.schema.json",
+      "bytes": 1029,
+      "sha256": "55bb78b0e7b7fe96c9bbb33f5f49551e32e75aab5ddfb64abecebd3facb5a602"
+    },
+    {
+      "path": "schemas/eval_case.schema.json",
+      "bytes": 753,
+      "sha256": "8ec9333c9d84ae7d93627af900eb5d11749df3f2e53bf5b785146009f00ea8c3"
+    },
+    {
+      "path": "schemas/knowledge_unit.schema.json",
+      "bytes": 1947,
+      "sha256": "4324e2bd5ecf672c17f3d99e976ca237ec0652382cbb224802b321d3503d5ac5"
+    },
+    {
+      "path": "schemas/objection.schema.json",
+      "bytes": 997,
+      "sha256": "13965479f7e105c6a117962e49b9783cdf51bcca0cac62950adbda54af3f630e"
+    },
+    {
+      "path": "schemas/scenario.schema.json",
+      "bytes": 1405,
+      "sha256": "bdc21cdea654d78cb1e125170eea0c28818c2da52308c99be030046eaeab93e9"
+    },
+    {
+      "path": "scripts/build_bundle.py",
+      "bytes": 2359,
+      "sha256": "3485f585da61d269ae4a0ddb1b6e909dcf3f4e7692fd06d2f30f7f0fe2d073e4"
+    },
+    {
+      "path": "scripts/build_release.py",
+      "bytes": 1932,
+      "sha256": "db1fc392425eaa82c5a7951d476dde818fb3a4b8128f9593d565b2f5b2c5c392"
+    },
+    {
+      "path": "scripts/validate_repository.py",
+      "bytes": 7582,
+      "sha256": "eb5f626b6f95c21b1cc9ce24e5562117569bff6e8141f9b53620c649bb425171"
+    }
+  ]
+}

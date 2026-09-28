@@ -15,7 +15,7 @@ import { MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
 import { roleplayCharacterPrompt } from '@/lib/ai/prompts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
-import { getScenario, type Scenario } from '@/lib/truss/scenarios';
+import { customScenario, getScenario, type Scenario } from '@/lib/truss/scenarios';
 import { billableSeconds } from '@/lib/truss/practice';
 
 export const runtime = 'nodejs';
@@ -44,20 +44,7 @@ async function loadCustomScenario(
 
   if (!data) return null;
 
-  return {
-    id: data.id,
-    slug: 'custom',
-    persona: data.persona,
-    title: data.title,
-    setup: data.setup,
-    characterBrief: data.character_brief,
-    objections: data.objections ?? [],
-    difficulty: data.difficulty,
-    focusStages: data.focus_stages ?? [],
-    trade: 'general',
-    voice: data.voice,
-    language: data.language,
-  } as Scenario;
+  return customScenario(data);
 }
 
 export async function POST(req: NextRequest) {
