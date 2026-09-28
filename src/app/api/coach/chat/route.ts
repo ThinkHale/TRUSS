@@ -12,6 +12,7 @@ import { openai, MODELS, isOpenAIConfigured } from '@/lib/ai/openai';
 import { coachSystemPrompt } from '@/lib/ai/prompts';
 import { retrieveKnowledge } from '@/lib/ai/knowledge';
 import { citationLabel } from '@/lib/truss/knowledge';
+import { accountRecordText } from '@/lib/truss/accounts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { STAGE_IDS, type StageId } from '@/lib/truss/methodology';
@@ -43,7 +44,8 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return Response.json({ error: 'Invalid request.' }, { status: 400 });
   }
-  const { message, stageFocus, accountId } = parsed.data;
+  const { message, stageFocus } = parsed.data;
+  let accountId = parsed.data.accountId ?? null;
 
   const supabase = await supabaseServer();
 
@@ -81,6 +83,14 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: 'Could not start the conversation.' }, { status: 500 });
     }
     conversationId = data.id;
+  } else if (!accountId) {
+    // Later turns of an account conversation keep its account in view.
+    const { data: conversation } = await supabase
+      .from('coach_conversations')
+      .select('account_id')
+      .eq('id', conversationId)
+      .maybeSingle();
+    accountId = conversation?.account_id ?? null;
   }
 
   const { data: history } = await supabase
@@ -93,9 +103,10 @@ export async function POST(req: NextRequest) {
   const priorTurns = (history ?? []).reverse();
 
   // Enterprise context plus anything relevant from the tenant's own material.
-  const [orgContext, knowledge] = await Promise.all([
+  const [orgContext, knowledge, account] = await Promise.all([
     loadOrgContext(session),
     retrieveKnowledge(session.orgId, message),
+    accountId ? loadAccount(supabase, accountId) : Promise.resolve(null),
   ]);
   orgContext.knowledge = knowledge;
 
@@ -105,6 +116,7 @@ export async function POST(req: NextRequest) {
   const { system, grounding } = coachSystemPrompt(orgContext, {
     query: `${lastRepTurn}\n${message}`,
     stageFocus,
+    account,
   });
 
   const { error: messageError } = await supabase.from('coach_messages').insert({
@@ -199,4 +211,36 @@ export async function POST(req: NextRequest) {
       'Cache-Control': 'no-cache, no-transform',
     },
   });
+}
+
+/**
+ * The account as prompt text, read with the rep's own client so the accounts
+ * policies decide whether they may see it. Null when it is not theirs to see.
+ */
+async function loadAccount(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  accountId: string,
+): Promise<string | null> {
+  const [{ data: account }, { data: contacts }, { data: activities }] = await Promise.all([
+    supabase
+      .from('accounts')
+      .select(
+        'name, type, address, city, state, status, truss_stage, carrier, claim_status, deductible_cents, date_of_loss, preferred_language, notes, updated_at',
+      )
+      .eq('id', accountId)
+      .maybeSingle(),
+    supabase
+      .from('contacts')
+      .select('name, relationship, is_decision_maker')
+      .eq('account_id', accountId)
+      .limit(10),
+    supabase
+      .from('activities')
+      .select('type, stage, notes, occurred_at')
+      .eq('account_id', accountId)
+      .order('occurred_at', { ascending: false })
+      .limit(10),
+  ]);
+
+  return account ? accountRecordText(account, contacts ?? [], activities ?? []) : null;
 }

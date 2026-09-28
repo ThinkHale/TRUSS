@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { STAGE_COLOR } from '@/lib/truss/ui';
 import { getSessionContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import type { StageId } from '@/lib/truss/methodology';
 import { NewAccountButton } from '@/components/accounts/NewAccountButton';
+import {
+  ACCOUNT_STATUS_LABELS,
+  CLAIM_STATUS_LABELS,
+  formatDollars,
+  hasInsuranceStory,
+  type AccountStatus,
+  type ClaimStatus,
+} from '@/lib/truss/accounts';
 
 export const metadata: Metadata = { title: 'Accounts' };
 
@@ -24,7 +32,12 @@ interface AccountRow {
 }
 
 export default async function AccountsPage() {
-  const t = await getTranslations('accounts');
+  const [t, tStage, locale] = await Promise.all([
+    getTranslations('accounts'),
+    getTranslations('stages'),
+    getLocale(),
+  ]);
+  const lang = locale === 'es' ? 'es' : 'en';
   const session = await getSessionContext();
 
   let accounts: AccountRow[] = [];
@@ -69,22 +82,26 @@ export default async function AccountsPage() {
                     className="shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold text-white"
                     style={{ backgroundColor: STAGE_COLOR[account.truss_stage] }}
                   >
-                    {account.truss_stage}
+                    {tStage(account.truss_stage)}
                   </span>
                 </div>
 
                 <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm sm:grid-cols-4">
-                  <Detail label={t('carrier')} value={account.carrier ?? '—'} />
                   <Detail
-                    label={t('deductible')}
-                    value={
-                      account.deductible_cents != null
-                        ? `$${(account.deductible_cents / 100).toLocaleString()}`
-                        : '—'
-                    }
+                    label={t('status')}
+                    value={ACCOUNT_STATUS_LABELS[lang][account.status as AccountStatus] ?? account.status}
                   />
-                  <Detail label={t('claimStatus')} value={account.claim_status} />
-                  <Detail label={t('stage')} value={account.status} />
+                  {/* Insurance columns only for claim work; other trades never see them. */}
+                  {hasInsuranceStory(account) && (
+                    <>
+                      <Detail
+                        label={t('claimStatus')}
+                        value={CLAIM_STATUS_LABELS[lang][account.claim_status as ClaimStatus] ?? account.claim_status}
+                      />
+                      <Detail label={t('carrier')} value={account.carrier ?? '—'} />
+                      <Detail label={t('deductible')} value={formatDollars(account.deductible_cents)} />
+                    </>
+                  )}
                 </dl>
               </Link>
             </li>

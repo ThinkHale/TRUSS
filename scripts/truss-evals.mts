@@ -18,7 +18,6 @@
 import OpenAI from 'openai';
 import { MODELS } from '@/lib/ai/openai';
 import {
-  accountBriefSystemPrompt,
   buildScoringUserPrompt,
   campaignSystemPrompt,
   campaignUserPrompt,
@@ -60,7 +59,11 @@ const builders: [string, string, string][] = [
   ['scoring', 'PRACTICE MODE CONTRACT', scoringSystemPrompt(library[0], {}, []).system],
   ['campaign', 'CAMPAIGN CREATION MODE CONTRACT', campaignSystemPrompt({}, 'maintenance renewal email').system],
   ['research', 'MARKET RESEARCH MODE CONTRACT', researchSystemPrompt({}, 'Plano, TX hail report').system],
-  ['account brief', 'ACCOUNT REVIEW MODE CONTRACT', accountBriefSystemPrompt({}, 'commercial HVAC renewal').system],
+  [
+    'coach (account brief)',
+    'THE ACCOUNT THIS CONVERSATION IS ABOUT',
+    coachSystemPrompt({}, { query: 'Prep me for this visit', account: 'Account: Test (commercial)' }).system,
+  ],
 ];
 
 for (const [name, contract, system] of builders) {
@@ -235,7 +238,9 @@ async function runCase(c: ReturnType<typeof evalCases>[number]): Promise<Run> {
     }
     case 'account_review': {
       const user = `Brief me on this account before my next visit.\n${text}`;
-      return { answer: await complete(accountBriefSystemPrompt({}, text).system, user), hardFailures: [] };
+      // The production path: Coach, carrying the account record.
+      const system = coachSystemPrompt({}, { query: user, account: text }).system;
+      return { answer: await complete(system, user), hardFailures: [] };
     }
     case 'market_research': {
       return { answer: await complete(researchSystemPrompt({}, text).system, text), hardFailures: [] };
@@ -249,6 +254,8 @@ wording: an item is met if the answer clearly does what it describes. A practice
 parts: the roleplay buyer's reply, where items about the buyer's reaction and staying in role
 apply, and the post-roleplay scorecard, where items about findings, violations, and feedback
 apply. A campaign case is the JSON the app received: a "hold" with missing inputs, or "pieces".
+A must_not item is violated only when the ANSWER does that thing. The case input — what the rep
+said — is what the answer is reacting to; correctly flagging it is not a violation.
 Return JSON: {"must_include":[{"item":string,"met":boolean,"why":string}],
 "must_not":[{"item":string,"violated":boolean,"why":string}],
 "consistent_with_expected":boolean,"note":string}`;

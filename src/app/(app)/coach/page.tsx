@@ -11,12 +11,21 @@ export const metadata: Metadata = { title: 'Coach' };
 export default async function CoachPage({
   searchParams,
 }: {
-  searchParams: Promise<{ c?: string; stage?: string }>;
+  searchParams: Promise<{ c?: string; stage?: string; account?: string }>;
 }) {
   const t = await getTranslations('coach');
-  const { c: conversationId, stage } = await searchParams;
+  const { c: conversationId, stage, account: accountParam } = await searchParams;
   const initialStage = STAGE_IDS.includes(stage as StageId) ? stage as StageId : null;
   const session = await getSessionContext();
+
+  // "Prep me for this visit" arrives with an account. Read it with the rep's
+  // own client, so an id they cannot see simply opens a normal Coach.
+  let account: { id: string; name: string } | null = null;
+  if (accountParam && !conversationId && session && /^[0-9a-f-]{36}$/i.test(accountParam)) {
+    const supabase = await supabaseServer();
+    const { data } = await supabase.from('accounts').select('id, name').eq('id', accountParam).maybeSingle();
+    account = data ?? null;
+  }
 
   // Resume a conversation when one is addressed in the URL.
   let initialMessages: { role: 'user' | 'assistant'; content: string }[] = [];
@@ -39,7 +48,8 @@ export default async function CoachPage({
       </div>
 
       <CoachChat
-        key={`${conversationId ?? 'new'}:${initialStage ?? 'all'}`}
+        key={`${conversationId ?? 'new'}:${initialStage ?? 'all'}:${account?.id ?? ''}`}
+        account={account}
         initialStage={initialStage}
         initialConversationId={conversationId ?? null}
         initialMessages={initialMessages}

@@ -26,7 +26,8 @@
     "language": "Idioma",
     "notConfigured": "Aún no configurado",
     "signIn": "Iniciar sesión",
-    "getStarted": "Empezar"
+    "getStarted": "Empezar",
+    "offlineShort": "No se pudo conectar con TRUSS. Revisa tu conexión e inténtalo de nuevo."
   },
   "stages": {
     "trust": "Confianza",
@@ -37,15 +38,15 @@
   },
   "coach": {
     "title": "TRUSS Coach",
-    "subtitle": "Pregunta lo que sea. Respuestas reales para puertas reales.",
+    "subtitle": "Pregunta lo que sea. Respuestas reales para trabajos reales.",
     "placeholder": "¿Qué pasó hoy allá afuera?",
     "emptyTitle": "¿En qué estamos trabajando?",
-    "emptyBody": "Cuéntame de una puerta que salió mal, un reclamo atorado, o un cliente que no logras entender.",
+    "emptyBody": "Cuéntame de una conversación que salió mal, un cliente que no logras leer o un trato que se estancó — en la puerta, en una llamada de servicio o en una reunión.",
     "suggestions": {
-      "objection": "Dicen que ya firmaron con otra compañía",
-      "deductible": "¿Cómo manejo el tema del deducible?",
-      "adjuster": "El ajustador negó mi reclamo. ¿Ahora qué?",
-      "opener": "Dame una mejor forma de abrir en la puerta"
+      "price": "Me dijeron que mi precio es muy alto",
+      "think": "Me dijeron que lo tienen que pensar",
+      "repairReplace": "¿Cómo hablo de reparar o reemplazar sin que parezca que quiero vender de más?",
+      "deductible": "¿Cómo manejo la conversación del deducible?"
     },
     "focusStage": "Enfócate en una etapa",
     "allStages": "Todo",
@@ -54,15 +55,17 @@
     "quotaBody": "Tu plan se reinicia el mes que viene, o puedes mejorar tu plan.",
     "libraryTitle": "Biblioteca de preguntas",
     "libraryHint": "Encuentra tu situación. Nosotros escribimos la pregunta.",
-    "librarySearch": "Buscar — deducible, ajustador, ya firmaron…",
+    "librarySearch": "Busca — precio, lo voy a pensar, servicio, deducible…",
     "libraryAll": "Todo",
     "libraryNoMatch": "No hay nada así. Prueba con una palabra más corta o elige una categoría arriba.",
     "libraryClose": "Cerrar",
-    "libraryOpenHint": "¿No sabes qué preguntar?"
+    "libraryOpenHint": "¿No sabes qué preguntar?",
+    "briefRequest": "Prepárame para esta visita.",
+    "aboutAccount": "Trabajando en:"
   },
   "practice": {
     "title": "Práctica",
-    "subtitle": "Habla en voz alta con un cliente. Recibe tu puntaje TRUSS.",
+    "subtitle": "Practica en voz alta con un cliente realista. Recibe tu evaluación TRUSS.",
     "start": "Empezar a hablar",
     "startText": "Mejor escribir",
     "end": "Terminar y calificar",
@@ -90,7 +93,16 @@
     "micQuiet": "Aun no captamos tu voz, intenta hablar mas fuerte",
     "muted": "Silenciado",
     "tapToHear": "Toca para escuchar",
-    "micHeld": "Espera, deja que terminen"
+    "micHeld": "Espera, deja que terminen",
+    "filterLabel": "Mostrar escenarios de",
+    "groups": {
+      "all": "Todos",
+      "custom": "Tu empresa",
+      "storm": "Tormentas y exteriores",
+      "home": "Servicio y reemplazos",
+      "projects": "Remodelación y proyectos",
+      "commercial": "Comercial"
+    }
   },
   "scorecard": {
     "title": "Tu calificación",
@@ -145,16 +157,38 @@
   },
   "accounts": {
     "title": "Cuentas",
-    "subtitle": "Cada propiedad, y cómo va.",
+    "subtitle": "Cada cliente y propiedad, y en qué punto está.",
     "create": "Agregar cuenta",
-    "empty": "Aún no hay cuentas. Agrega la primera después de tu próxima inspección.",
+    "empty": "Todavía no hay cuentas. Agrega la primera después de tu próxima visita.",
     "carrier": "Aseguradora",
     "deductible": "Deducible",
     "claimStatus": "Reclamo",
     "stage": "Etapa",
-    "lastActivity": "Última actividad",
+    "lastActivity": "Actividad",
     "decisionMaker": "Quien decide",
-    "brief": "Prepárame para esta visita"
+    "brief": "Prepárame para esta visita",
+    "name": "Nombre",
+    "address": "Dirección",
+    "edit": "Editar detalles",
+    "type": "Tipo",
+    "status": "Estado",
+    "insurance": "Este trabajo incluye un reclamo de seguro",
+    "dateOfLoss": "Fecha del daño",
+    "notes": "Notas",
+    "briefHint": "Coach lee esta cuenta — detalles, personas y actividad — antes de responder.",
+    "contacts": "Personas",
+    "addContact": "Agregar una persona",
+    "relationship": "Rol o relación",
+    "phone": "Teléfono",
+    "email": "Correo",
+    "canSign": "Puede firmar o aprobar",
+    "call": "Llamar",
+    "noContacts": "Nadie registrado todavía. ¿Quién toma la decisión?",
+    "logActivity": "Registrar lo que pasó",
+    "activityType": "¿Qué fue?",
+    "activityStage": "Paso en el que trabajabas",
+    "whatHappened": "Qué pasó",
+    "noActivity": "Nada registrado todavía."
   },
   "marketing": {
     "heroTitle": "Tu mejor vendedor, en cada troca.",
@@ -178,5 +212,12 @@
     "generic": "Algo salió mal. Intenta de nuevo.",
     "offline": "No tienes señal. TRUSS lo intentará otra vez cuando tengas conexión.",
     "unauthorized": "Inicia sesión para continuar."
+  },
+  "settings": {
+    "whatWeDo": "Lo que hacemos",
+    "tradesHint": "Tus oficios le dicen a TRUSS qué parte de su entrenamiento usar al entrenar, evaluar y escribir para tu equipo.",
+    "serviceArea": "Dónde trabajas",
+    "saved": "Guardado.",
+    "ownersOnly": "Solo un dueño o administrador puede cambiar esto."
   }
 }

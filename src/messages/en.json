@@ -26,7 +26,8 @@
     "language": "Language",
     "notConfigured": "Not set up yet",
     "signIn": "Sign in",
-    "getStarted": "Get started"
+    "getStarted": "Get started",
+    "offlineShort": "Could not reach TRUSS. Check your connection and try again."
   },
   "stages": {
     "trust": "Trust",
@@ -37,15 +38,15 @@
   },
   "coach": {
     "title": "TRUSS Coach",
-    "subtitle": "Ask anything. Real answers for real doors.",
+    "subtitle": "Ask anything. Real answers for real jobs.",
     "placeholder": "What happened out there today?",
     "emptyTitle": "What are we working on?",
-    "emptyBody": "Tell me about a door that went sideways, a claim you are stuck on, or a homeowner you cannot read.",
+    "emptyBody": "Tell me about a conversation that went sideways, a customer you cannot read, or a deal that stalled — at the door, on a service call, or in a meeting.",
     "suggestions": {
-      "objection": "They said they already signed with someone",
-      "deductible": "How do I handle the deductible conversation?",
-      "adjuster": "The adjuster denied my claim. Now what?",
-      "opener": "Give me a better door opener"
+      "price": "They said my price is too high",
+      "think": "They said they need to think about it",
+      "repairReplace": "How do I talk repair versus replace without sounding like I am upselling?",
+      "deductible": "How do I handle the deductible conversation?"
     },
     "focusStage": "Focus on one stage",
     "allStages": "Everything",
@@ -54,15 +55,17 @@
     "quotaBody": "Your plan resets at the start of next month, or you can upgrade.",
     "libraryTitle": "Prompt library",
     "libraryHint": "Find your situation. We will write the question.",
-    "librarySearch": "Search — deductible, adjuster, already signed…",
+    "librarySearch": "Search — price, think about it, service call, deductible…",
     "libraryAll": "Everything",
     "libraryNoMatch": "Nothing matches that. Try a shorter word, or pick a category above.",
     "libraryClose": "Close",
-    "libraryOpenHint": "Not sure what to ask?"
+    "libraryOpenHint": "Not sure what to ask?",
+    "briefRequest": "Prep me for this visit.",
+    "aboutAccount": "Working on:"
   },
   "practice": {
     "title": "Practice",
-    "subtitle": "Talk to a homeowner out loud. Get scored on TRUSS.",
+    "subtitle": "Talk it through out loud with a realistic customer. Get scored on TRUSS.",
     "start": "Start talking",
     "startText": "Type instead",
     "end": "End and score",
@@ -90,7 +93,16 @@
     "micQuiet": "Not picking up your voice yet — try speaking up",
     "muted": "Muted",
     "tapToHear": "Tap to hear them",
-    "micHeld": "Hold on — let them finish"
+    "micHeld": "Hold on — let them finish",
+    "filterLabel": "Show scenarios for",
+    "groups": {
+      "all": "All",
+      "custom": "Your company",
+      "storm": "Storm and exteriors",
+      "home": "Service calls and replacements",
+      "projects": "Remodeling and projects",
+      "commercial": "Commercial"
+    }
   },
   "scorecard": {
     "title": "Your scorecard",
@@ -145,16 +157,38 @@
   },
   "accounts": {
     "title": "Accounts",
-    "subtitle": "Every property, and where it stands.",
+    "subtitle": "Every customer and property, and where each one stands.",
     "create": "Add account",
-    "empty": "No accounts yet. Add the first one after your next inspection.",
+    "empty": "No accounts yet. Add the first one after your next visit.",
     "carrier": "Carrier",
     "deductible": "Deductible",
     "claimStatus": "Claim",
     "stage": "Stage",
-    "lastActivity": "Last activity",
+    "lastActivity": "Activity",
     "decisionMaker": "Decision maker",
-    "brief": "Prep me for this visit"
+    "brief": "Prep me for this visit",
+    "name": "Name",
+    "address": "Address",
+    "edit": "Edit details",
+    "type": "Type",
+    "status": "Status",
+    "insurance": "This job involves an insurance claim",
+    "dateOfLoss": "Date of loss",
+    "notes": "Notes",
+    "briefHint": "The Coach reads this account — details, people, and activity — before it answers.",
+    "contacts": "People",
+    "addContact": "Add a person",
+    "relationship": "Role or relationship",
+    "phone": "Phone",
+    "email": "Email",
+    "canSign": "Can sign or approve",
+    "call": "Call",
+    "noContacts": "Nobody recorded yet. Who makes the decision?",
+    "logActivity": "Log what happened",
+    "activityType": "What was it?",
+    "activityStage": "Stage you were working",
+    "whatHappened": "What happened",
+    "noActivity": "Nothing logged yet."
   },
   "marketing": {
     "heroTitle": "Your best closer, in every truck.",
@@ -178,5 +212,12 @@
     "generic": "Something went wrong. Try again.",
     "offline": "You are offline. TRUSS will retry when you have signal.",
     "unauthorized": "Sign in to keep going."
+  },
+  "settings": {
+    "whatWeDo": "What we do",
+    "tradesHint": "Your trades tell TRUSS which parts of its training to lean on when it coaches, scores, and writes for your team.",
+    "serviceArea": "Where you work",
+    "saved": "Saved.",
+    "ownersOnly": "Only an owner or admin can change this."
   }
 }

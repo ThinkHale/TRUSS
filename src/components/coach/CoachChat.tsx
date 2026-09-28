@@ -23,9 +23,11 @@ interface Props {
   initialStage?: StageId | null;
   initialConversationId: string | null;
   initialMessages: Message[];
+  /** Set when the rep came from an account's "Prep me for this visit". */
+  account?: { id: string; name: string } | null;
 }
 
-export function CoachChat({ initialConversationId, initialMessages, initialStage = null }: Props) {
+export function CoachChat({ initialConversationId, initialMessages, initialStage = null, account = null }: Props) {
   const t = useTranslations('coach');
   const tc = useTranslations('common');
 
@@ -67,6 +69,7 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
           conversationId: conversationId.current,
           message: trimmed,
           stageFocus,
+          accountId: account?.id ?? null,
         }),
       });
 
@@ -151,6 +154,17 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
     });
   }
 
+  // The rep asked for a brief by tapping the button; sending it is the point.
+  // Guarded by a ref so development's double effect run does not ask twice.
+  const briefSent = useRef(false);
+  useEffect(() => {
+    if (!account || briefSent.current || initialMessages.length > 0) return;
+    briefSent.current = true;
+    void send(t('briefRequest'));
+    // send is stable enough for a one-shot on mount; rerunning it would re-ask.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [account]);
+
   const empty = messages.length === 0;
 
   return (
@@ -173,6 +187,12 @@ export function CoachChat({ initialConversationId, initialMessages, initialStage
           </StageChip>
         ))}
       </div>
+
+      {account && (
+        <p className="mx-5 mb-2 rounded-xl border border-line bg-surface/60 px-4 py-2 text-sm text-ink-600">
+          {t('aboutAccount')} <b className="text-ink-900">{account.name}</b>
+        </p>
+      )}
 
       <div ref={scrollRef} className="coach-scroll min-h-0 flex-1 overflow-y-auto">
         {empty ? (
@@ -264,7 +284,7 @@ function EmptyState({
   onBrowse: () => void;
 }) {
   const t = useTranslations('coach');
-  const suggestions = ['objection', 'deductible', 'adjuster', 'opener'] as const;
+  const suggestions = ['price', 'think', 'repairReplace', 'deductible'] as const;
 
   return (
     <div className="coach-empty mx-auto max-w-2xl py-6">

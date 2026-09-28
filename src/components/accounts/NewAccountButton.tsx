@@ -30,13 +30,17 @@ export function NewAccountButton() {
     setSaving(true);
     setError(null);
     try {
-      await createAccount({ name: name.trim(), address: address.trim() || null });
+      const result = await createAccount({ name: name.trim(), address: address.trim() || null });
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
       setOpen(false);
       setName('');
       setAddress('');
       router.refresh();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'failed');
+    } catch {
+      setError(tc('offlineShort'));
     } finally {
       setSaving(false);
     }
@@ -61,7 +65,7 @@ export function NewAccountButton() {
         <h2 className="text-lg font-bold">{t('create')}</h2>
 
         <div>
-          <label className="label" htmlFor="account-name">Name</label>
+          <label className="label" htmlFor="account-name">{t('name')}</label>
           <input
             id="account-name"
             className="field"
@@ -72,7 +76,7 @@ export function NewAccountButton() {
         </div>
 
         <div>
-          <label className="label" htmlFor="account-address">Address</label>
+          <label className="label" htmlFor="account-address">{t('address')}</label>
           <input
             id="account-address"
             className="field"
