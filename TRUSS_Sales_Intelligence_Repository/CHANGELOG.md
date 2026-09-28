@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1
+
+- Corrected EV-009 to reference SC-009 (multi-site commercial HVAC). It referenced SC-016, a residential maintenance visit with no procurement or operations stakeholders, so the expected buyer reaction could not occur. Data-only patch; doctrine and the 1.0.0 knowledge base bundle are unchanged.
+
 ## 1.0.0
 
 - Established the Trust, Relate, Understand, Solve, Secure operating model.

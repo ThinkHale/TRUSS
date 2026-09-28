@@ -1,13 +1,13 @@
 {
   "name": "TRUSS Sales Intelligence Repository",
-  "version": "1.0.0",
-  "built_at": "2026-09-09T17:16:18+00:00",
+  "version": "1.0.1",
+  "built_at": "2026-09-28T01:09:01+00:00",
   "file_count_excluding_manifest": 49,
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 705,
-      "sha256": "5e2bc049f928855a6ff6e9558a8983e4a1bc7de18bef2c02c12c9f9a500dfeb1"
+      "bytes": 1012,
+      "sha256": "d27f1ec46798127f5a725b35ff52a1ec297efddcb82a6af05e741bfa70b6f8fc"
     },
     {
       "path": "CONTRIBUTING.md",
@@ -22,7 +22,7 @@
     {
       "path": "VERSION",
       "bytes": 6,
-      "sha256": "59854984853104df5c353e2f681a15fc7924742f9a2e468c29af248dce45ce03"
+      "sha256": "44e161e4495cac2cf7858043e9e6418e9579f0ddcfae826f9a372622968ce066"
     },
     {
       "path": "data/campaign_patterns.jsonl",
@@ -32,7 +32,7 @@
     {
       "path": "data/eval_cases.jsonl",
       "bytes": 11639,
-      "sha256": "f092cd903050eb94b28e6a9272600cd838faf04b970a7e06548a3e915f58bd11"
+      "sha256": "6989b63e6eea6f24916adee199879cfd5009cebca899e0859b3288bc49efc289"
     },
     {
       "path": "data/knowledge_units.jsonl",

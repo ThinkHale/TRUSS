@@ -15,7 +15,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -66,7 +66,24 @@ if (drifted.length) {
 
 // The bundle at the project root is the one people hand around; the copy in
 // dist/ is what the repository built. Prefer the root copy, flag divergence.
-const bundleName = `TRUSS_AI_Knowledge_Base_v${version}.md`;
+//
+// A data-only patch (a corrected eval case, a new scenario) bumps VERSION
+// without touching the doctrine, so the bundle keeps its earlier version.
+// Use the newest bundle at or below VERSION.
+const semver = (v) => v.split('.').map(Number);
+const atOrBelow = (a, b) => {
+  const [x, y] = [semver(a), semver(b)];
+  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i];
+  return true;
+};
+const bundleVersions = [ROOT, join(REPO, 'dist')]
+  .filter(existsSync)
+  .flatMap((dir) => readdirSync(dir))
+  .map((name) => name.match(/^TRUSS_AI_Knowledge_Base_v(\d+\.\d+\.\d+)\.md$/)?.[1])
+  .filter((v) => v && atOrBelow(v, version))
+  .sort((a, b) => (atOrBelow(a, b) ? 1 : -1));
+if (!bundleVersions.length) fail(`no TRUSS_AI_Knowledge_Base_v*.md at or below v${version}.`);
+const bundleName = `TRUSS_AI_Knowledge_Base_v${bundleVersions[0]}.md`;
 const rootBundle = join(ROOT, bundleName);
 const distBundle = join(REPO, 'dist', bundleName);
 const bundlePath = existsSync(rootBundle) ? rootBundle : distBundle;
