@@ -2,7 +2,7 @@
   "name": "truss",
   "version": "0.1.0",
   "private": true,
-  "description": "TRUSS \u2014 Sales intelligence for the Trades",
+  "description": "TRUSS — Sales intelligence for the Trades",
   "scripts": {
     "predev": "npm run knowledge:build",
     "dev": "next dev",
@@ -11,6 +11,9 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit && npm run test:db",
+    "test:unit": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --import ./scripts/ts-register.mjs --test \"tests/unit/**/*.test.ts\"",
+    "test:db": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --import ./scripts/ts-register.mjs --test \"tests/db/**/*.test.ts\"",
     "knowledge:build": "node scripts/build-truss-knowledge.mjs",
     "knowledge:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --import ./scripts/ts-register.mjs scripts/truss-evals.mts",
     "knowledge:eval": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --env-file-if-exists=.env.local --import ./scripts/ts-register.mjs scripts/truss-evals.mts --live"
@@ -18,15 +21,19 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.115.0",
+    "mammoth": "^1.13.0",
     "next": "^16.3.4",
     "next-intl": "^4.14.2",
     "openai": "^7.10.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "stripe": "^22.6.1",
+    "unpdf": "^1.8.1",
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-pgvector": "^0.0.9",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^24.0.0",
     "@types/react": "^19.2.0",
