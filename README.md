@@ -31,7 +31,19 @@ whether damage is still claimable, and nearby commercial properties from Google 
 **Campaigns** writes outreach anchored to a TRUSS stage, in English and Spanish.
 
 **Accounts** tracks properties by the fields that actually decide a trades deal: carrier,
-deductible, claim status, decision maker, and which stage the rep is in.
+deductible, claim status, decision maker, and which stage the rep is in — and what it sold for,
+or why it was lost.
+
+**Program** runs the TRUSS Eight-Week Training Program in cohorts: weekly pre-work and field
+evidence, practice targets, a manager's check each week, and a verifiable credential issued
+against the program's own criteria.
+
+**Field review** scores a real, recorded conversation — with everyone's consent — against the
+same rubric as practice. The audio is deleted once transcribed.
+
+**Team** is the manager's side: stage-by-stage scores for every rep, ramp time, the compliance
+report, scenario authoring, the company knowledge base, outcomes from the CRM, the roster, and
+the audit log. **Portfolio** rolls operating companies up for the holding company that owns them.
 
 ## Two distribution models
 
@@ -103,9 +115,22 @@ The methodology lives in `src/lib/truss/methodology.ts` and is the single source
 Coach prompts, the scoring rubric, and the progress UI are all generated from it, so they
 cannot drift apart.
 
+## Tests
+
+```bash
+npm test            # unit tests, then every migration and RLS policy against in-process Postgres
+npm run knowledge:check
+```
+
+The database suite (`tests/db`) needs no Supabase project and no Docker: it applies every
+migration to PGlite and exercises the policies as each role. CI runs it on every push.
+
 ## Documentation
 
 - [`docs/TRUSS-METHODOLOGY.md`](docs/TRUSS-METHODOLOGY.md) — the methodology in full
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how it fits together and why
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deploying to trusscoach.com
-- [`docs/ENTERPRISE.md`](docs/ENTERPRISE.md) — onboarding an Enterprise tenant
+- [`docs/ENTERPRISE.md`](docs/ENTERPRISE.md) — onboarding an Enterprise tenant or a portfolio
+- [`docs/INTEGRATIONS.md`](docs/INTEGRATIONS.md) — connecting a CRM for outcomes
+- [`docs/SECURITY-COMPLIANCE.md`](docs/SECURITY-COMPLIANCE.md) — controls in place and SOC 2 readiness
+- [`docs/CONTENT-RIGHTS.md`](docs/CONTENT-RIGHTS.md) — what TRUSS owns, and what to settle before an exit

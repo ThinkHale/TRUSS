@@ -15,7 +15,27 @@ From **Project settings → API**, collect:
 - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (server only, never in the browser)
 
 Under **Authentication → URL configuration**, set the site URL to `https://trusscoach.com`
-and add `https://trusscoach.com/**` as a redirect URL.
+and add `https://trusscoach.com/**` as a redirect URL. Invitations, password resets, and SSO
+all return through `/auth/callback`, which that pattern covers.
+
+**Migrations 0017–0024 before the code that uses them.** They add outcomes, the portfolio
+hierarchy, field reviews, the program, roster management, integrations, analytics, and token
+cost tracking. The session loader falls back safely if 0018 is missing, and each new page says
+which migration it needs rather than failing — but apply them first. `npm run test:db`
+applies every migration to an in-process Postgres and runs the policy suite; run it before
+`supabase db push`.
+
+**Auth email.** Team invitations are sent by Supabase Auth, so configure custom SMTP under
+**Authentication → SMTP**; the built-in sender is rate-limited to a handful of emails an hour.
+Set `NEXT_PUBLIC_SITE_URL` so links point at the real domain.
+
+**Storage.** Field reviews upload audio to a private bucket, `field-audio`, which the app
+creates on first use. Audio is deleted as soon as it is transcribed.
+
+**SSO (per customer).** Single sign-on needs Supabase's SAML add-on (Pro plan and above). For
+each customer: `supabase sso add --type saml --metadata-url <their IdP metadata> --domains <their domain>`,
+then in the operator console add the domain to their company and, once a test sign-in works,
+tick *SSO required*.
 
 ### Verifying isolation after migrating
 
@@ -121,8 +141,10 @@ vercel deploy --prod
 
 Add `trusscoach.com` and `www.trusscoach.com` as domains and point DNS at the host.
 
-Note that `/api/practice/score` and `/api/research` set `maxDuration` to 90 seconds. On a
-platform with a shorter function timeout, either raise the limit or move those to a queue.
+Note that `/api/practice/score` and `/api/research` set `maxDuration` to 90 seconds, and
+`/api/field-review` and `/api/export` to 300. Vercel's Hobby plan caps functions at 60
+seconds; field reviews of long recordings need Pro. On another platform with a shorter
+timeout, raise the limit or move those to a queue.
 
 ## 7. Post-deploy checks
 
@@ -138,7 +160,16 @@ platform with a shorter function timeout, either raise the limit or move those t
 - Open **Manage billing** and confirm the Stripe portal opens
 - Grant a test org Enterprise access in the console and confirm its Coach limit goes unlimited
 
+- `npm test` passes locally and CI is green on the deployed commit
+- As an owner, invite a second address from **Team → People** and confirm the email arrives
+  and the link lands on *Choose a password*, then in the company
+- Upload a short PDF on **Team → Knowledge** and ask the Coach about it
+- Record a one-minute field review on **Field review** and confirm it scores
+
 ## Cost notes
+
+Actual per-tenant cost is on **/admin → Economics** once 0024 is applied: every model call
+records the tokens the provider billed. The notes below are the shape of it.
 
 The variable costs, roughly in order:
 

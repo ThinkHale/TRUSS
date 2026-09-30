@@ -6,9 +6,23 @@ hear. This document is the onboarding path.
 
 Everything below is data. There is no per-customer fork of the codebase.
 
-> **There is now a console for most of this.** `/admin` does steps 1, 2, 5, and 6 without SQL —
-> see `docs/ADMIN.md`. The SQL below is still accurate, and is what the console runs. Steps 3
-> (loading their material) and 4 (authoring scenarios) remain API and SQL.
+> **None of this needs SQL any more.** `/admin` creates the tenant and sets its context and
+> branding (steps 1, 2, 6). The customer's own managers load their material on **Team →
+> Knowledge** (step 3), author scenarios on **Team → Scenarios** (step 4), and their owners and
+> admins invite and manage their people on **Team → People** (step 5). The SQL below is still
+> accurate and is what those screens run.
+>
+> **Portfolios.** A holding company is an organization of kind *portfolio*; its operating
+> companies name it as their parent (operator console → company → *Portfolio*). Its playbook
+> rules, knowledge documents, and published scenarios reach every company beneath it, and its
+> leaders get **/portfolio** — every company's adoption, beam scores, compliance, ramp,
+> certifications, and outcomes, as aggregates only.
+>
+> **Also in the product now:** the eight-week program with cohorts and certification
+> (**Team → Program**), field reviews of real recorded conversations (**/field**), a compliance
+> report built from critical findings (**Team → Compliance**), outcome tracking from a CRM or CSV
+> (**Team → Outcomes**, `docs/INTEGRATIONS.md`), the tenant audit log (**Team → Audit log**),
+> SSO by email domain, and company data export (Settings).
 
 ## 1. Create the organization
 

@@ -64,6 +64,7 @@ not already grant, so it is not a new exposure. Everyone after the first is prom
 | `/admin/orgs/new` | Create a tenant outright — the Enterprise path |
 | `/admin/users` | Every account and the company it is with; invite; promote |
 | `/admin/users/[id]` | One person: their companies, roles, active org, delete |
+| `/admin/economics` | Revenue run-rate, model cost, and gross margin per company per month |
 | `/admin/audit` | Everything done with platform authority |
 
 **Both directions are covered.** The company page answers *who is at this
@@ -153,6 +154,14 @@ Give the first person `owner`. The database will not let you remove the last own
 
 **6. Brand it.** `brand_name`, `brand_logo_url`, `brand_color` on the same form, for a
 white-labeled deployment.
+
+**7. Place it.** On the company page, *Portfolio* makes an organization a holding company, or
+puts a company inside one. *Email domains and SSO* records the domains the company owns —
+people with a confirmed address there join it on sign-in, and *SSO required* refuses password
+sign-ins for that domain. Establish domain ownership before saving one: it decides who lands in
+the tenant. *Contract* records an offline agreement's annual value, which **Economics** uses as
+that company's revenue. All three are audited as `org.set_hierarchy`, `org.set_domain`,
+`org.remove_domain`, and `org.set_contract`.
 
 ## What is written down
 

@@ -1,0 +1,55 @@
+# Every push and pull request: lint, types, unit tests, the database suite, the
+# knowledge-base grounding checks, and a production build.
+#
+# The database suite needs no Supabase project and no Docker: it applies every
+# migration to PGlite (Postgres compiled to WebAssembly) and exercises the RLS
+# policies and SECURITY DEFINER functions as each role — tenant isolation, Coach
+# privacy, the metering guards, portfolio inheritance, certification, invites.
+# A migration that fails to apply fails CI with the file's name.
+
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Database tests (every migration, every policy)
+        run: npm run test:db
+
+      - name: Knowledge-base grounding checks
+        run: npm run knowledge:check
+
+      - name: Build
+        run: npm run build
+        env:
+          # The build must succeed with no services configured; the app
+          # routes to /setup at runtime when they are missing.
+          NEXT_TELEMETRY_DISABLED: '1'
