@@ -41,6 +41,8 @@ export default async function MarketingLayout({ children }: { children: React.Re
           <div className="site-footer-links">
             <Link href="/pricing">{t('marketing.pricingTitle')}</Link>
             <Link href="/enterprise">Enterprise</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/security">Security</Link>
             <Link href="/login">{t('common.signIn')}</Link>
           </div>
         </div>
