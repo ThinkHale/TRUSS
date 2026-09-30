@@ -7,6 +7,7 @@ import { OrgPlanForm } from '@/components/admin/OrgPlanForm';
 import { OrgMembers, type Member } from '@/components/admin/OrgMembers';
 import { OrgSettingsForm, type OrgSettings } from '@/components/admin/OrgSettingsForm';
 import { OrgIdentityForm } from '@/components/admin/OrgIdentityForm';
+import { OrgEnterpriseForm, type OrgDomain } from '@/components/admin/OrgEnterpriseForm';
 
 export const metadata: Metadata = { title: 'Company' };
 
@@ -49,6 +50,19 @@ export default async function AdminOrgDetail({
     ]);
 
   if (!org) notFound();
+
+  // Enterprise shape (migrations 0018, 0021, 0024). Read separately so this
+  // page still renders against a database that has not had them applied.
+  const [{ data: shape }, { data: portfolios }, { data: children }, { data: domains }] = await Promise.all([
+    supabase
+      .from('organizations')
+      .select('kind, parent_org_id, contract_annual_value_cents, contract_starts_on, contract_renews_on')
+      .eq('id', id)
+      .maybeSingle(),
+    supabase.from('organizations').select('id, name').eq('kind', 'portfolio').order('name'),
+    supabase.from('organizations').select('id, name').eq('parent_org_id', id).order('name'),
+    supabase.from('org_domains').select('domain, default_role, auto_join, sso_required, verified_at').eq('org_id', id),
+  ]);
 
   const planState = {
     plan: org.plan as PlanId,
@@ -139,6 +153,22 @@ export default async function AdminOrgDetail({
       />
 
       <OrgSettingsForm orgId={org.id} settings={(settings ?? null) as OrgSettings | null} />
+
+      {shape && (
+        <OrgEnterpriseForm
+          orgId={org.id}
+          kind={(shape.kind ?? 'company') as 'company' | 'portfolio'}
+          parentId={shape.parent_org_id ?? null}
+          portfolios={portfolios ?? []}
+          companies={children ?? []}
+          domains={(domains ?? []) as OrgDomain[]}
+          contract={{
+            annualCents: shape.contract_annual_value_cents == null ? null : Number(shape.contract_annual_value_cents),
+            startsOn: shape.contract_starts_on ?? null,
+            renewsOn: shape.contract_renews_on ?? null,
+          }}
+        />
+      )}
 
       <OrgIdentityForm
         orgId={org.id}

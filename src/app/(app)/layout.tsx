@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { BrandLogo } from '@/components/brand/Logo';
 import { AppNav } from '@/components/AppNav';
 import { LanguageToggle } from '@/components/LanguageToggle';
-import { getSessionContext } from '@/lib/supabase/session';
+import { getSessionContext, isManagerRole } from '@/lib/supabase/session';
 import { isSupabaseConfigured } from '@/lib/supabase/server';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -41,7 +41,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </header>
 
       <div className="app-frame">
-        <AppNav orgName={session.orgName} isPlatformAdmin={session.isPlatformAdmin} />
+        <AppNav
+          orgName={session.orgName}
+          isPlatformAdmin={session.isPlatformAdmin}
+          isManager={isManagerRole(session.role)}
+          isPortfolio={session.orgKind === 'portfolio'}
+        />
         {/* Clearance for the phone tab bar is set in CSS, from the same
             variable the tab bar and the Coach work area measure from. */}
         <main className="app-main min-w-0 flex-1">{children}</main>

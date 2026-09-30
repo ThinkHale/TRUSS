@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { getSessionContext } from '@/lib/supabase/session';
+import { getSessionContext, isAdminRole, isManagerRole } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { isPlanPurchasable, isStripeConfigured } from '@/lib/billing/stripe';
 import { PLANS, isOverrideActive } from '@/lib/billing/plans';
@@ -9,6 +9,7 @@ import { PlanActions } from '@/components/billing/PlanActions';
 import { SignOutButton } from '@/components/SignOutButton';
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { CompanyProfileForm } from '@/components/CompanyProfileForm';
+import { CompanySwitcher, PendingInvitations } from '@/components/SettingsExtras';
 
 export const metadata: Metadata = { title: 'Settings' };
 
@@ -34,7 +35,15 @@ export default async function SettingsPage({
   // The org row carries billing state; the counters carry this month's usage;
   // entitlements are read for the plan actually in force rather than the billed
   // one, so an operator grant shows the limits it really unlocked.
-  const [{ data: usage }, { data: entitlements }, { data: org }, { count: seatsUsed }, { data: orgSettings }] =
+  const [
+    { data: usage },
+    { data: entitlements },
+    { data: org },
+    { count: seatsUsed },
+    { data: orgSettings },
+    { data: invitations },
+    { data: myCompanies },
+  ] =
     await Promise.all([
       supabase
         .from('usage_counters')
@@ -59,7 +68,14 @@ export default async function SettingsPage({
         .select('trades, service_area')
         .eq('org_id', session.orgId)
         .maybeSingle(),
+      supabase.rpc('my_invitations'),
+      supabase.from('memberships').select('org_id, organizations(name)').eq('user_id', session.userId),
     ]);
+
+  const companies = (myCompanies ?? []).map((m) => ({
+    org_id: m.org_id as string,
+    name: (m.organizations as unknown as { name: string } | null)?.name ?? 'Company',
+  }));
 
   const hasSubscription = Boolean(org?.stripe_subscription_id);
   // An expired grant is still stored on the row, so ask whether it is live
@@ -96,12 +112,25 @@ export default async function SettingsPage({
         </div>
       </section>
 
+      <PendingInvitations invitations={(invitations ?? []) as { invitation_id: string; org_name: string; role: string }[]} />
+
       <section className="card mt-4">
         <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">Company</h2>
         <p className="mt-2 text-lg font-bold">{session.orgName}</p>
         <p className="text-sm capitalize text-ink-500">
           {PLANS[session.plan].name} plan · {session.role}
         </p>
+        <CompanySwitcher current={session.orgId} companies={companies} />
+        {/* On a phone these have no tab; this is where they are reached. */}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link href="/program" className="btn-ghost !min-h-0 !py-2 text-sm">{tNav('program')}</Link>
+          {isManagerRole(session.role) && (
+            <Link href="/team" className="btn-ghost !min-h-0 !py-2 text-sm">{tNav('team')}</Link>
+          )}
+          {session.orgKind === 'portfolio' && isManagerRole(session.role) && (
+            <Link href="/portfolio" className="btn-ghost !min-h-0 !py-2 text-sm">{tNav('portfolio')}</Link>
+          )}
+        </div>
       </section>
 
       <section className="card mt-4">
@@ -198,6 +227,26 @@ export default async function SettingsPage({
             limit={entitlements?.monthly_campaigns ?? null}
           />
         </dl>
+      </section>
+
+      <section className="card mt-4">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-ink-500">Your data</h2>
+        <p className="mt-2 text-sm text-ink-600">
+          Download everything TRUSS holds about you here — your Coach conversations, practice, and field reviews.
+        </p>
+        <a href="/api/export?scope=me" className="btn-ghost mt-3 inline-flex">Download my data</a>
+        {isAdminRole(session.role) && (
+          <>
+            <p className="mt-4 text-sm text-ink-600">
+              Company export: accounts, people, practice and scorecards, field reviews, the program, scenarios,
+              knowledge, and the audit log. Coach conversations are private to each rep and are not included.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a href="/api/export?scope=org" className="btn-ghost inline-flex">Export company data (JSON)</a>
+              <a href="/api/export?scope=accounts" className="btn-ghost inline-flex">Export accounts (CSV)</a>
+            </div>
+          </>
+        )}
       </section>
 
       {session.isPlatformAdmin && (

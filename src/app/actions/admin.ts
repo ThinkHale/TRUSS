@@ -487,3 +487,108 @@ export async function adminSetPlatformAdmin(
   revalidatePath('/admin/users');
   return { ok: true };
 }
+
+// ─── Portfolio hierarchy, domains, and contracts ────────────────────────────
+
+const hierarchySchema = z.object({
+  orgId: z.string().uuid(),
+  kind: z.enum(['company', 'portfolio']),
+  parentId: z.string().uuid().nullable(),
+});
+
+/**
+ * Makes a company a portfolio, or places a company inside one. Which companies
+ * a holding company can see is a contract matter, so only operators move it
+ * (admin_set_org_hierarchy, migration 0018).
+ */
+export async function adminSetHierarchy(input: z.input<typeof hierarchySchema>): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+  const parsed = hierarchySchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Invalid change.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_set_org_hierarchy', {
+    p_org: parsed.data.orgId,
+    p_kind: parsed.data.kind,
+    p_parent: parsed.data.kind === 'portfolio' ? null : parsed.data.parentId,
+  });
+  if (error) return { ok: false, message: explain(error, 'Could not change the hierarchy.') };
+
+  revalidatePath(`/admin/orgs/${parsed.data.orgId}`);
+  if (parsed.data.parentId) revalidatePath(`/admin/orgs/${parsed.data.parentId}`);
+  return { ok: true };
+}
+
+const domainSchema = z.object({
+  orgId: z.string().uuid(),
+  domain: z.string().trim().toLowerCase().min(3).max(253),
+  defaultRole: z.enum(['rep', 'manager']),
+  autoJoin: z.boolean(),
+  ssoRequired: z.boolean(),
+});
+
+/**
+ * Records that a company owns an email domain: people with a confirmed address
+ * there join it on sign-in, and — if set — must sign in through SSO. Verify
+ * ownership (a DNS TXT record, or the signed agreement) before saving: this
+ * decides who lands in the tenant.
+ */
+export async function adminSetDomain(input: z.input<typeof domainSchema>): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+  const parsed = domainSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Enter a domain like apexroofing.com.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_set_org_domain', {
+    p_org: parsed.data.orgId,
+    p_domain: parsed.data.domain,
+    p_default_role: parsed.data.defaultRole,
+    p_auto_join: parsed.data.autoJoin,
+    p_sso_required: parsed.data.ssoRequired,
+    p_verified: true,
+  });
+  if (error) return { ok: false, message: error.code === '23505' || error.code === '22023' ? error.message : explain(error, 'Could not save that domain.') };
+
+  revalidatePath(`/admin/orgs/${parsed.data.orgId}`);
+  return { ok: true };
+}
+
+export async function adminRemoveDomain(orgId: string, domain: string): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_remove_org_domain', { p_domain: domain });
+  if (error) return { ok: false, message: explain(error, 'Could not remove that domain.') };
+  revalidatePath(`/admin/orgs/${orgId}`);
+  return { ok: true };
+}
+
+const contractSchema = z.object({
+  orgId: z.string().uuid(),
+  annualDollars: z.number().int().min(0).max(100_000_000).nullable(),
+  startsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  renewsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+});
+
+/** The annual value of an offline agreement, for the economics view. */
+export async function adminSetContract(input: z.input<typeof contractSchema>): Promise<ActionResult> {
+  const denied = await guard();
+  if (denied) return { ok: false, message: denied };
+  const parsed = contractSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, message: 'Check the amount and dates.' };
+
+  const supabase = await supabaseServer();
+  const { error } = await supabase.rpc('admin_set_contract', {
+    p_org: parsed.data.orgId,
+    p_annual_cents: parsed.data.annualDollars == null ? null : parsed.data.annualDollars * 100,
+    p_starts_on: parsed.data.startsOn,
+    p_renews_on: parsed.data.renewsOn,
+  });
+  if (error) return { ok: false, message: explain(error, 'Could not save the contract.') };
+
+  revalidatePath(`/admin/orgs/${parsed.data.orgId}`);
+  revalidatePath('/admin/economics');
+  return { ok: true };
+}

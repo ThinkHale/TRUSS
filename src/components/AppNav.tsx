@@ -30,9 +30,33 @@ const ITEMS: NavItem[] = [
   { href: '/accounts', key: 'accounts', icon: <IconHome /> },
 ];
 
-export function AppNav({ orgName, isPlatformAdmin = false }: { orgName: string; isPlatformAdmin?: boolean }) {
+/**
+ * Desktop-only destinations. The phone bar is already six wide, the most a
+ * thumb can hit reliably; on a phone these are reached from Practice and
+ * Settings instead.
+ */
+const SECONDARY: { href: string; key: 'program' | 'team' | 'portfolio'; show: 'all' | 'manager' | 'portfolio' }[] = [
+  { href: '/program', key: 'program', show: 'all' },
+  { href: '/team', key: 'team', show: 'manager' },
+  { href: '/portfolio', key: 'portfolio', show: 'portfolio' },
+];
+
+export function AppNav({
+  orgName,
+  isPlatformAdmin = false,
+  isManager = false,
+  isPortfolio = false,
+}: {
+  orgName: string;
+  isPlatformAdmin?: boolean;
+  isManager?: boolean;
+  isPortfolio?: boolean;
+}) {
   const pathname = usePathname();
   const t = useTranslations('nav');
+  const secondary = SECONDARY.filter(
+    (item) => item.show === 'all' || (item.show === 'manager' && isManager) || (item.show === 'portfolio' && isPortfolio && isManager),
+  );
 
   return (
     <>
@@ -90,6 +114,20 @@ export function AppNav({ orgName, isPlatformAdmin = false }: { orgName: string; 
             );
           })}
         </ul>
+        <ul className="app-sidebar-items mt-4 space-y-1 border-t border-white/10 pt-4">
+          {secondary.map((item) => (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                aria-current={pathname.startsWith(item.href) ? 'page' : undefined}
+                className="app-sidebar-link"
+              >
+                <span aria-hidden>{item.key === 'program' ? <IconProgram /> : item.key === 'team' ? <IconTeam /> : <IconPortfolio />}</span>
+                {t(item.key)}
+              </Link>
+            </li>
+          ))}
+        </ul>
         <div className="app-sidebar-footer">
           {/* Only rendered for operators, and /admin authorizes on its own —
               this is a shortcut, not the gate. */}
@@ -110,6 +148,30 @@ export function AppNav({ orgName, isPlatformAdmin = false }: { orgName: string; 
 }
 
 /* Icons are inline so the app ships no icon dependency and stays fast on 3G. */
+
+function IconProgram() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2Zm0 0a2 2 0 0 1 2-2h12M9 7h6M9 11h4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconTeam() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconPortfolio() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+      <path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function IconCoach() {
   return (

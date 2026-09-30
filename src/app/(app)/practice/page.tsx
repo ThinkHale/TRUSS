@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { PracticeRoom } from '@/components/practice/PracticeRoom';
 import { SCENARIOS } from '@/lib/truss/scenarios';
@@ -10,6 +11,7 @@ export const metadata: Metadata = { title: 'Practice' };
 
 export default async function PracticePage() {
   const t = await getTranslations('practice');
+  const tNav = await getTranslations('nav');
   const locale = (await getLocale()) as 'en' | 'es';
   const session = await getSessionContext();
 
@@ -39,6 +41,13 @@ export default async function PracticePage() {
           <p>{t('subtitle')}</p>
         </div>
       </header>
+
+      {/* The program and field reviews live here on a phone, where the tab bar
+          has no room for them. */}
+      <nav className="mb-4 flex flex-wrap gap-2" aria-label="More practice">
+        <Link href="/program" className="btn-ghost !min-h-0 !py-2 text-sm">{tNav('program')}</Link>
+        <Link href="/field" className="btn-ghost !min-h-0 !py-2 text-sm">{tNav('field')}</Link>
+      </nav>
 
       <PracticeRoom
         scenarios={builtIn.map((s) => ({

@@ -8,6 +8,7 @@ import { createServerClient } from '@supabase/ssr';
  */
 
 const PROTECTED_PREFIXES = ['/coach', '/practice', '/method', '/research', '/campaigns', '/accounts', '/settings',
+  '/team', '/program', '/field', '/portfolio',
   // /admin authorizes again in its own layout; this only ensures a signed-out
   // visitor is sent to login rather than through a database round trip.
   '/admin'];
@@ -51,7 +52,9 @@ export async function proxy(request: NextRequest) {
   }
 
   // Signed-in reps land on the Coach, not the marketing page.
-  if (user && (path === '/login' || path === '/signup')) {
+  // ?sso=required is how a password session for an SSO-only domain is sent
+  // to sign in again the right way, so it must not bounce back to the app.
+  if (user && (path === '/login' || path === '/signup') && !request.nextUrl.searchParams.has('sso')) {
     const app = request.nextUrl.clone();
     app.pathname = '/coach';
     app.search = '';
