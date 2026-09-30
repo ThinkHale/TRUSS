@@ -70,6 +70,9 @@ export interface EditableAccount {
   deductible_cents: number | null;
   date_of_loss: string | null;
   notes: string | null;
+  contract_value_cents?: number | null;
+  lost_reason?: string | null;
+  lead_source?: string | null;
 }
 
 export function AccountDetailsForm({ account }: { account: EditableAccount }) {
@@ -90,6 +93,12 @@ export function AccountDetailsForm({ account }: { account: EditableAccount }) {
   );
   const [dateOfLoss, setDateOfLoss] = useState(account.date_of_loss ?? '');
   const [notes, setNotes] = useState(account.notes ?? '');
+  const [contractValue, setContractValue] = useState(
+    account.contract_value_cents == null ? '' : String(Math.round(account.contract_value_cents / 100)),
+  );
+  const [lostReason, setLostReason] = useState(account.lost_reason ?? '');
+  const [leadSource, setLeadSource] = useState(account.lead_source ?? '');
+  const won = status === 'signed' || status === 'in-production' || status === 'complete';
 
   // Only claim work needs the insurance fields; everyone else never sees them.
   const [insurance, setInsurance] = useState(
@@ -111,6 +120,9 @@ export function AccountDetailsForm({ account }: { account: EditableAccount }) {
           deductibleDollars: insurance && dollars ? Number(dollars) : null,
           dateOfLoss: insurance && dateOfLoss ? dateOfLoss : null,
           notes,
+          contractValueDollars: contractValue.replace(/[^0-9]/g, '') ? Number(contractValue.replace(/[^0-9]/g, '')) : null,
+          lostReason: status === 'lost' ? lostReason : null,
+          leadSource,
         }),
       () => setOpen(false),
     );
@@ -145,6 +157,20 @@ export function AccountDetailsForm({ account }: { account: EditableAccount }) {
             <Field id="acct-dol" label={t('dateOfLoss')} value={dateOfLoss} onChange={setDateOfLoss} type="date" />
           </div>
         )}
+
+        {/* What closed, for how much, and why not — the numbers the team
+            dashboard sets practice against. */}
+        <div className="grid gap-4 sm:grid-cols-2">
+          {(won || status === 'lost' || contractValue) && (
+            <Field id="acct-value" label={t('contractValue')} value={contractValue} onChange={setContractValue}
+              inputMode="numeric" placeholder="$" />
+          )}
+          {status === 'lost' && (
+            <Field id="acct-lost" label={t('lostReason')} value={lostReason} onChange={setLostReason} />
+          )}
+          <Field id="acct-source" label={t('leadSource')} value={leadSource} onChange={setLeadSource}
+            placeholder={t('leadSourceHint')} />
+        </div>
 
         <div>
           <label className="label" htmlFor="acct-notes">{t('notes')}</label>

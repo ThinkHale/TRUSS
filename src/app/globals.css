@@ -619,3 +619,73 @@ section.card + section.card { margin-top:16px; }
 @media(min-width:480px) and (max-width:767px){
   .prompt-open span { display:inline; }
 }
+
+/* ─── Team, program, and portfolio ────────────────────────────────────────────
+   Manager-facing screens. Same light surfaces as the rest of the app — these are
+   the customer's own tools, not the operator console — with denser tables,
+   because a manager is reading twenty reps at once, usually at a desk. */
+
+.team-tabs { display:flex; gap:4px; overflow-x:auto; margin:-4px 0 20px; padding-bottom:2px; border-bottom:1px solid var(--color-line); scrollbar-width:none; }
+.team-tabs::-webkit-scrollbar { display:none; }
+.team-tabs a { flex-shrink:0; padding:9px 13px; border-bottom:2px solid transparent; margin-bottom:-1px; font-size:.875rem; font-weight:700; color:var(--color-ink-500); white-space:nowrap; }
+.team-tabs a:hover { color:var(--color-ink-800); }
+.team-tabs a[aria-current="page"] { color:var(--color-ink-900); border-bottom-color:var(--color-gold-500); }
+
+.team-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+.team-stat { background:var(--color-surface); border:1px solid var(--color-line); border-radius:12px; padding:14px 16px; }
+.team-stat dt { font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--color-ink-500); }
+.team-stat dd { margin-top:4px; font-size:1.55rem; font-weight:900; letter-spacing:-.03em; color:var(--color-ink-900); }
+.team-stat small { display:block; margin-top:2px; font-size:.78rem; font-weight:600; color:var(--color-ink-500); }
+.team-stat-bad dd { color:var(--color-nogo); }
+
+.team-table-wrap { overflow-x:auto; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); }
+.team-table { width:100%; border-collapse:collapse; font-size:.85rem; }
+.team-table th { position:sticky; top:0; background:var(--color-paper); text-align:left; font-size:.7rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--color-ink-500); padding:10px 12px; border-bottom:1px solid var(--color-line); white-space:nowrap; }
+.team-table td { padding:10px 12px; border-bottom:1px solid var(--color-line); vertical-align:middle; color:var(--color-ink-800); }
+.team-table tr:last-child td { border-bottom:0; }
+.team-table td.num, .team-table th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.team-table a { font-weight:700; color:var(--color-ink-900); }
+.team-table a:hover { text-decoration:underline; }
+
+/* A 0–4 beam average as a cell: number plus a tint, so it never relies on color alone. */
+.beam-cell { display:inline-block; min-width:2.6rem; padding:3px 7px; border-radius:6px; text-align:center; font-weight:800; font-variant-numeric:tabular-nums; }
+.beam-cell[data-band="good"] { background:#15803d1a; color:var(--color-go); }
+.beam-cell[data-band="mid"]  { background:#a162071f; color:var(--color-marginal); }
+.beam-cell[data-band="low"]  { background:#b91c1c1a; color:var(--color-nogo); }
+.beam-cell[data-band="none"] { color:var(--color-ink-400); }
+
+.team-pill { display:inline-flex; align-items:center; gap:5px; border-radius:999px; padding:2px 9px; font-size:.72rem; font-weight:800; border:1px solid var(--color-line-strong); color:var(--color-ink-600); white-space:nowrap; }
+.team-pill-good { border-color:#15803d55; color:var(--color-go); background:#15803d0f; }
+.team-pill-bad  { border-color:#b91c1c55; color:var(--color-nogo); background:#b91c1c0f; }
+.team-pill-gold { border-color:var(--color-gold-500); color:var(--color-gold-700); background:#d4a01714; }
+
+.team-section-title { margin:28px 0 10px; font-size:.75rem; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--color-ink-500); }
+.team-note { font-size:.82rem; line-height:1.5; color:var(--color-ink-500); }
+.team-empty { padding:28px 20px; text-align:center; color:var(--color-ink-500); font-size:.9rem; }
+.team-filters { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+.team-filters a { padding:6px 12px; border-radius:999px; border:1px solid var(--color-line-strong); font-size:.8rem; font-weight:700; color:var(--color-ink-600); background:var(--color-surface); }
+.team-filters a[aria-current="true"] { border-color:var(--color-navy-800); background:var(--color-navy-800); color:#fff; }
+
+.team-form { display:grid; gap:14px; }
+.team-form-row { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); }
+.team-result-ok  { font-size:.85rem; font-weight:700; color:var(--color-go); }
+.team-result-bad { font-size:.85rem; font-weight:700; color:var(--color-nogo); }
+.team-secret { display:block; overflow-x:auto; padding:10px 12px; border-radius:8px; background:var(--color-navy-900); color:#fff; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem; white-space:nowrap; }
+
+.program-week { border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); }
+.program-week > summary { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; list-style:none; }
+.program-week > summary::-webkit-details-marker { display:none; }
+.program-week-num { display:grid; place-items:center; flex-shrink:0; width:2.1rem; height:2.1rem; border-radius:999px; background:var(--color-paper-200); font-weight:900; color:var(--color-ink-700); }
+.program-week[data-state="done"] .program-week-num { background:var(--color-go); color:#fff; }
+.program-week[data-state="current"] .program-week-num { background:var(--color-gold-500); color:var(--color-navy-900); }
+.program-week-body { padding:0 16px 16px; display:grid; gap:14px; font-size:.9rem; }
+.program-week-body h4 { font-size:.72rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--color-ink-500); margin-bottom:4px; }
+.program-week-body ul { list-style:disc; padding-left:1.2rem; display:grid; gap:3px; }
+
+.progress-grid td.cell { text-align:center; font-size:.9rem; }
+
+@media(max-width:767px){
+  .team-stat dd { font-size:1.3rem; }
+  .team-table { font-size:.8rem; }
+  .team-table th, .team-table td { padding:9px 10px; }
+}

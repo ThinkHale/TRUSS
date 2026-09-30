@@ -12,7 +12,11 @@
     "accounts": "Accounts",
     "settings": "Settings",
     "signOut": "Sign out",
-    "method": "Method"
+    "method": "Method",
+    "team": "Team",
+    "program": "Program",
+    "portfolio": "Portfolio",
+    "field": "Field review"
   },
   "common": {
     "loading": "Working…",
@@ -119,7 +123,9 @@
       "no-commitment": "No commitment",
       "lost": "Lost"
     },
-    "practiceAgain": "Run it again"
+    "practiceAgain": "Run it again",
+    "critical": "Critical finding — this cannot count as passing",
+    "weighted": "{score} / 100 weighted"
   },
   "research": {
     "title": "Research",
@@ -188,7 +194,11 @@
     "activityType": "What was it?",
     "activityStage": "Stage you were working",
     "whatHappened": "What happened",
-    "noActivity": "Nothing logged yet."
+    "noActivity": "Nothing logged yet.",
+    "contractValue": "Contract value",
+    "lostReason": "Why it was lost",
+    "leadSource": "Lead source",
+    "leadSourceHint": "Door knock, referral, storm canvass…"
   },
   "marketing": {
     "heroTitle": "Your best closer, in every truck.",
@@ -219,5 +229,61 @@
     "serviceArea": "Where you work",
     "saved": "Saved.",
     "ownersOnly": "Only an owner or admin can change this."
+  },
+  "program": {
+    "title": "Program",
+    "subtitle": "The TRUSS eight-week program.",
+    "notEnrolled": "You are not in a program cohort yet.",
+    "notEnrolledBody": "Your manager enrolls you. Until then, practice any scenario and ask the Coach anything — it all counts toward how you improve.",
+    "startsOn": "Your cohort starts {date}.",
+    "cohort": "Cohort",
+    "week": "Week {n}",
+    "currentWeek": "This week",
+    "done": "Checked by your manager",
+    "waiting": "Waiting for your manager",
+    "inProgress": "In progress",
+    "focus": "Focus",
+    "prework": "Before the session",
+    "live": "In the live session",
+    "fieldTarget": "In the field",
+    "measure": "How it is measured",
+    "practice": "{done} of {goal} practice sessions this week",
+    "practiceNow": "Practice now",
+    "preworkLabel": "Your pre-work",
+    "fieldLabel": "What you did in the field, and what happened",
+    "submit": "Submit",
+    "resubmit": "Update",
+    "saved": "Saved.",
+    "resubmitNote": "Changing an answer your manager already checked reopens the week for them.",
+    "managerNote": "From your manager",
+    "certification": "Certification",
+    "certified": "Certified",
+    "credential": "Credential {code}",
+    "verify": "Anyone can verify it at",
+    "criteria": "What it takes",
+    "met": "met",
+    "notYet": "not yet"
+  },
+  "field": {
+    "title": "Field review",
+    "subtitle": "Score a real conversation, not a practice one.",
+    "consentTitle": "Everyone on the recording has to know and agree.",
+    "consentBody": "Recording laws differ by state, and some require every person's consent. TRUSS holds every upload to that standard. Do not upload a conversation someone did not agree to have recorded.",
+    "consentCheck": "Everyone in this recording knew it was being recorded and agreed to it.",
+    "context": "What was this conversation?",
+    "contextHint": "Insurance roof inspection follow-up with a homeowner",
+    "who": "Whose conversation is it?",
+    "me": "Mine",
+    "record": "Record now",
+    "stop": "Stop recording",
+    "upload": "Or upload a recording",
+    "recorded": "Recorded {min} min",
+    "submit": "Transcribe and score",
+    "working": "Transcribing and scoring — this takes about a minute…",
+    "privacy": "The audio is deleted as soon as it is transcribed. The transcript and scorecard stay in your account, and your managers can read them — the same as practice.",
+    "quota": "Your company has used its field reviews for this month.",
+    "recent": "Your field reviews",
+    "none": "None yet.",
+    "back": "Field reviews"
   }
 }

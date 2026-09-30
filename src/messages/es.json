@@ -12,7 +12,11 @@
     "accounts": "Cuentas",
     "settings": "Ajustes",
     "signOut": "Cerrar sesión",
-    "method": "Método"
+    "method": "Método",
+    "team": "Equipo",
+    "program": "Programa",
+    "portfolio": "Portafolio",
+    "field": "Revisión de campo"
   },
   "common": {
     "loading": "Trabajando…",
@@ -119,7 +123,9 @@
       "no-commitment": "Sin compromiso",
       "lost": "Perdido"
     },
-    "practiceAgain": "Hazlo otra vez"
+    "practiceAgain": "Hazlo otra vez",
+    "critical": "Falta crítica — esta conversación no puede contar como aprobada",
+    "weighted": "{score} / 100 ponderado"
   },
   "research": {
     "title": "Investigar",
@@ -188,7 +194,11 @@
     "activityType": "¿Qué fue?",
     "activityStage": "Paso en el que trabajabas",
     "whatHappened": "Qué pasó",
-    "noActivity": "Nada registrado todavía."
+    "noActivity": "Nada registrado todavía.",
+    "contractValue": "Valor del contrato",
+    "lostReason": "Por qué se perdió",
+    "leadSource": "Origen del prospecto",
+    "leadSourceHint": "Puerta a puerta, referido, después de tormenta…"
   },
   "marketing": {
     "heroTitle": "Tu mejor vendedor, en cada troca.",
@@ -219,5 +229,61 @@
     "serviceArea": "Dónde trabajas",
     "saved": "Guardado.",
     "ownersOnly": "Solo un dueño o administrador puede cambiar esto."
+  },
+  "program": {
+    "title": "Programa",
+    "subtitle": "El programa TRUSS de ocho semanas.",
+    "notEnrolled": "Todavía no estás en un grupo del programa.",
+    "notEnrolledBody": "Tu gerente te inscribe. Mientras tanto, practica cualquier escenario y pregúntale lo que sea al Coach — todo cuenta para mejorar.",
+    "startsOn": "Tu grupo empieza el {date}.",
+    "cohort": "Grupo",
+    "week": "Semana {n}",
+    "currentWeek": "Esta semana",
+    "done": "Revisada por tu gerente",
+    "waiting": "Esperando a tu gerente",
+    "inProgress": "En progreso",
+    "focus": "Enfoque",
+    "prework": "Antes de la sesión",
+    "live": "En la sesión en vivo",
+    "fieldTarget": "En campo",
+    "measure": "Cómo se mide",
+    "practice": "{done} de {goal} prácticas esta semana",
+    "practiceNow": "Practicar ahora",
+    "preworkLabel": "Tu tarea previa",
+    "fieldLabel": "Lo que hiciste en campo y qué pasó",
+    "submit": "Enviar",
+    "resubmit": "Actualizar",
+    "saved": "Guardado.",
+    "resubmitNote": "Si cambias una respuesta que tu gerente ya revisó, la semana se vuelve a abrir para él.",
+    "managerNote": "De tu gerente",
+    "certification": "Certificación",
+    "certified": "Certificado",
+    "credential": "Credencial {code}",
+    "verify": "Cualquiera puede verificarla en",
+    "criteria": "Lo que se necesita",
+    "met": "cumplido",
+    "notYet": "pendiente"
+  },
+  "field": {
+    "title": "Revisión de campo",
+    "subtitle": "Califica una conversación real, no una práctica.",
+    "consentTitle": "Todas las personas en la grabación deben saberlo y aceptarlo.",
+    "consentBody": "Las leyes de grabación cambian según el estado, y algunas exigen el permiso de todos. TRUSS aplica esa regla a todo lo que se sube. No subas una conversación que alguien no aceptó que se grabara.",
+    "consentCheck": "Todas las personas en esta grabación sabían que se estaba grabando y lo aceptaron.",
+    "context": "¿Qué conversación fue?",
+    "contextHint": "Seguimiento de inspección de techo por seguro con un propietario",
+    "who": "¿De quién es la conversación?",
+    "me": "Mía",
+    "record": "Grabar ahora",
+    "stop": "Detener",
+    "upload": "O sube una grabación",
+    "recorded": "Grabado {min} min",
+    "submit": "Transcribir y calificar",
+    "working": "Transcribiendo y calificando — tarda como un minuto…",
+    "privacy": "El audio se borra en cuanto se transcribe. La transcripción y la calificación quedan en tu cuenta, y tus gerentes pueden leerlas — igual que la práctica.",
+    "quota": "Tu empresa ya usó sus revisiones de campo de este mes.",
+    "recent": "Tus revisiones de campo",
+    "none": "Ninguna todavía.",
+    "back": "Revisiones de campo"
   }
 }

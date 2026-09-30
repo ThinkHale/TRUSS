@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { STAGES, getStage, type StageId } from '@/lib/truss/methodology';
-import { MAX_STAGE_SCORE, MAX_TOTAL_SCORE } from '@/lib/truss/scoring';
+import { CRITICAL_LABELS, MAX_STAGE_SCORE, MAX_TOTAL_SCORE, type CriticalCode } from '@/lib/truss/scoring';
 import { STAGE_COLOR, scoreColor, cx } from '@/lib/truss/ui';
 
 export interface ScorecardData {
@@ -23,6 +23,10 @@ export interface ScorecardData {
     improve: string;
     betterLine: string | null;
   }[];
+  /** Structured critical findings (migration 0017). Absent on older scorecards. */
+  critical_findings?: { code: string; description: string; evidence: string }[] | null;
+  /** 0–100 weighted rubric, when the database computed it. */
+  weighted_score?: number | null;
 }
 
 /**
@@ -49,8 +53,31 @@ export function Scorecard({
     secure: data.secure,
   };
 
+  const critical = data.critical_findings ?? [];
+
   return (
     <div className="space-y-5">
+      {/* A critical finding outranks everything, including the headline: the
+          conversation cannot count as passing, whatever the beam scores say. */}
+      {critical.length > 0 && (
+        <section role="alert" className="card border-l-4" style={{ borderLeftColor: 'var(--color-nogo)' }}>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-nogo">{t('critical')}</h2>
+          <ul className="mt-2 space-y-3">
+            {critical.map((finding, i) => (
+              <li key={i}>
+                <p className="font-bold">{CRITICAL_LABELS[finding.code as CriticalCode] ?? CRITICAL_LABELS.other}</p>
+                <p className="mt-1 text-sm text-ink-700">{finding.description}</p>
+                {finding.evidence && (
+                  <blockquote className="mt-1.5 border-l-2 border-nogo/40 pl-3 text-sm italic text-ink-600">
+                    “{finding.evidence}”
+                  </blockquote>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* Headline first. If a rep reads one thing, it is this. */}
       <section className="card border-l-4" style={{ borderLeftColor: 'var(--color-gold-500)' }}>
         <h2 className="text-xs font-bold uppercase tracking-widest text-gold-600">
@@ -69,6 +96,11 @@ export function Scorecard({
           <div className="text-right">
             <span className="text-3xl font-black">{data.total_score}</span>
             <span className="text-ink-400">/{MAX_TOTAL_SCORE}</span>
+            {data.weighted_score != null && (
+              <div className="text-xs font-semibold text-ink-500">
+                {t('weighted', { score: data.weighted_score })}
+              </div>
+            )}
           </div>
         </div>
 

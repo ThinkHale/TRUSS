@@ -128,6 +128,9 @@ export default async function AccountPage({ params }: { params: Promise<{ id: st
           deductible_cents: account.deductible_cents,
           date_of_loss: account.date_of_loss,
           notes: account.notes,
+          contract_value_cents: account.contract_value_cents ?? null,
+          lost_reason: account.lost_reason ?? null,
+          lead_source: account.lead_source ?? null,
         }}
       />
 

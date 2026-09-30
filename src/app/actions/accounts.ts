@@ -103,6 +103,10 @@ const updateSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .nullable(),
   notes: optionalText(4000),
+  /** Whole dollars. What the job sold for — the number outcomes are measured in. */
+  contractValueDollars: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
+  lostReason: optionalText(500).optional(),
+  leadSource: optionalText(120).optional(),
 });
 
 /** Saves the details that decide the deal and drive the pre-visit brief. */
@@ -126,6 +130,12 @@ export async function updateAccount(input: z.input<typeof updateSchema>): Promis
       deductible_cents: d.deductibleDollars == null ? null : d.deductibleDollars * 100,
       date_of_loss: d.dateOfLoss,
       notes: d.notes,
+      // Outcome fields are left alone when an older client does not send them.
+      ...(d.contractValueDollars !== undefined && {
+        contract_value_cents: d.contractValueDollars == null ? null : d.contractValueDollars * 100,
+      }),
+      ...(d.lostReason !== undefined && { lost_reason: d.lostReason }),
+      ...(d.leadSource !== undefined && { lead_source: d.leadSource }),
       updated_at: new Date().toISOString(),
     })
     .eq('id', d.id)
