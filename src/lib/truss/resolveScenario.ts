@@ -14,7 +14,9 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function resolveScenario(
   supabase: SupabaseClient,
-  orgId: string,
+  /** The rep's company, plus its portfolio when it has one: published portfolio
+   *  scenarios are playable in every company beneath it (migration 0018). */
+  orgIds: string | (string | null)[],
   scenarioId: string,
   options: { customScenarioId?: string | null; requirePublished?: boolean } = {},
 ): Promise<Scenario | null> {
@@ -24,7 +26,8 @@ export async function resolveScenario(
   const id = options.customScenarioId ?? scenarioId;
   if (!UUID.test(id)) return null;
 
-  let query = supabase.from('custom_scenarios').select('*').eq('id', id).eq('org_id', orgId);
+  const allowed = (Array.isArray(orgIds) ? orgIds : [orgIds]).filter((o): o is string => Boolean(o));
+  let query = supabase.from('custom_scenarios').select('*').eq('id', id).in('org_id', allowed);
   // Starting a session requires a published scenario; one already underway
   // keeps working if a manager unpublishes it mid-conversation.
   if (options.requirePublished) query = query.eq('is_published', true);

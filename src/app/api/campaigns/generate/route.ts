@@ -14,6 +14,7 @@ import { campaignSystemPrompt, campaignUserPrompt } from '@/lib/ai/prompts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { STAGE_IDS, getStage, type StageId } from '@/lib/truss/methodology';
+import { recordTokens } from '@/lib/ai/usage';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -126,6 +127,7 @@ export async function POST(req: NextRequest) {
       ],
     });
 
+    await recordTokens(supabase, session.orgId, 'campaign', MODELS.structured, completion.usage);
     const raw = completion.choices[0]?.message?.content ?? '{}';
     result = responseSchema.parse(JSON.parse(raw));
   } catch {

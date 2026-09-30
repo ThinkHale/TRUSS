@@ -17,6 +17,7 @@ import { currentConditions, forecastDays, assessWorkWindows } from '@/lib/google
 import { stormSignal } from '@/lib/google/storms';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
+import { recordTokens } from '@/lib/ai/usage';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
             }) },
         ],
       });
+      await recordTokens(supabase, session.orgId, 'research', MODELS.structured, completion.usage);
       brief = completion.choices[0]?.message?.content?.trim() ?? null;
     } catch {
       // The data below is useful on its own; the narrative is a bonus.

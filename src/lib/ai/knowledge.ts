@@ -52,12 +52,19 @@ export function chunkText(text: string): string[] {
 }
 
 export async function embed(texts: string[]): Promise<number[][]> {
-  if (!texts.length) return [];
+  return (await embedWithUsage(texts)).vectors;
+}
+
+/** Embeddings plus the token count the provider billed, for cost tracking. */
+export async function embedWithUsage(
+  texts: string[],
+): Promise<{ vectors: number[][]; promptTokens: number }> {
+  if (!texts.length) return { vectors: [], promptTokens: 0 };
   const res = await openai().embeddings.create({
     model: MODELS.embedding,
     input: texts,
   });
-  return res.data.map((d) => d.embedding);
+  return { vectors: res.data.map((d) => d.embedding), promptTokens: res.usage?.prompt_tokens ?? 0 };
 }
 
 /**

@@ -36,6 +36,42 @@ export const stageScoreSchema = z.object({
   betterLine: z.string().nullable(),
 });
 
+/**
+ * The critical findings the scorer names, as codes a report can count.
+ * Each one is a critical failure under the knowledge base's critical override:
+ * the conversation cannot count as passing, whatever its beam scores.
+ */
+export const CRITICAL_CODES = [
+  'deductible',
+  'insurance_promise',
+  'unverified_claim',
+  'payment_only',
+  'scenario_critical',
+  'other',
+] as const;
+
+export type CriticalCode = (typeof CRITICAL_CODES)[number];
+
+export const CRITICAL_LABELS: Record<CriticalCode, string> = {
+  deductible: 'Offered to waive or cover the deductible',
+  insurance_promise: 'Promised an insurance outcome',
+  unverified_claim: 'Stated an unverified hazard, code, or savings claim',
+  payment_only: 'Quoted a payment without price, total cost, or terms',
+  scenario_critical: 'Scenario-specific critical failure',
+  other: 'Other critical violation',
+};
+
+export const criticalFindingSchema = z.object({
+  // An unrecognized code from the model is kept as 'other' rather than
+  // failing the whole scorecard: the finding matters more than its label.
+  code: z.string().transform((c): CriticalCode =>
+    (CRITICAL_CODES as readonly string[]).includes(c) ? (c as CriticalCode) : 'other',
+  ),
+  description: z.string(),
+  /** Verbatim quote of what the rep said. */
+  evidence: z.string(),
+});
+
 export const scorecardSchema = z.object({
   stages: z.array(stageScoreSchema).length(5),
   /** The one thing to work on before the next real conversation. */
@@ -44,10 +80,13 @@ export const scorecardSchema = z.object({
   outcome: z.enum(['signed', 'next-step-set', 'no-commitment', 'lost']),
   /** Short, plain-language summary the rep reads first. */
   summary: z.string(),
+  /** Empty when the conversation had none. Older scorecards predate the field. */
+  critical: z.array(criticalFindingSchema).default([]),
 });
 
 export type StageScore = z.infer<typeof stageScoreSchema>;
 export type Scorecard = z.infer<typeof scorecardSchema>;
+export type CriticalFinding = z.infer<typeof criticalFindingSchema>;
 
 export function totalScore(card: Scorecard): number {
   return card.stages.reduce((sum, s) => sum + s.score, 0);

@@ -20,6 +20,7 @@ import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseAdmin, supabaseServer } from '@/lib/supabase/server';
 import { resolveScenario } from '@/lib/truss/resolveScenario';
 import { billableSeconds, fitTranscript } from '@/lib/truss/practice';
+import { recordTokens } from '@/lib/ai/usage';
 
 export const runtime = 'nodejs';
 export const maxDuration = 90;
@@ -106,7 +107,7 @@ export async function POST(req: NextRequest) {
 
   await updateSession({ status: 'scoring' });
 
-  const scenario = await resolveScenario(supabase, session.orgId, practiceSession.scenario_id, {
+  const scenario = await resolveScenario(supabase, [session.orgId, session.parentOrgId], practiceSession.scenario_id, {
     customScenarioId: practiceSession.custom_scenario_id,
   });
 
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
       ],
     });
 
+    await recordTokens(supabase, session.orgId, 'scoring', MODELS.structured, completion.usage);
     const raw = completion.choices[0]?.message?.content ?? '{}';
     card = scorecardSchema.parse(JSON.parse(raw));
   } catch {
@@ -147,27 +149,33 @@ export async function POST(req: NextRequest) {
 
   const byStage = Object.fromEntries(card.stages.map((s) => [s.stage, s.score]));
 
-  const { data: saved, error: saveError } = await admin
-    .from('scorecards')
-    .upsert(
-      {
-        session_id: sessionId,
-        org_id: session.orgId,
-        user_id: session.userId,
-        trust: byStage.trust ?? 0,
-        relate: byStage.relate ?? 0,
-        understand: byStage.understand ?? 0,
-        solve: byStage.solve ?? 0,
-        secure: byStage.secure ?? 0,
-        outcome: card.outcome,
-        headline: card.headline,
-        summary: card.summary,
-        stages: card.stages,
-      },
-      { onConflict: 'session_id' },
-    )
-    .select('*')
-    .single();
+  const row = {
+    session_id: sessionId,
+    org_id: session.orgId,
+    user_id: session.userId,
+    trust: byStage.trust ?? 0,
+    relate: byStage.relate ?? 0,
+    understand: byStage.understand ?? 0,
+    solve: byStage.solve ?? 0,
+    secure: byStage.secure ?? 0,
+    outcome: card.outcome,
+    headline: card.headline,
+    summary: card.summary,
+    stages: card.stages,
+    critical_findings: card.critical,
+  };
+  const save = (values: Record<string, unknown>) =>
+    admin.from('scorecards').upsert(values, { onConflict: 'session_id' }).select('*').single();
+
+  let { data: saved, error: saveError } = await save(row);
+  // critical_findings arrives with migration 0017. A deploy that reaches the
+  // database first must not stop every scorecard from saving; the findings are
+  // still named in the summary, as they always were.
+  if (saveError && (saveError.code === 'PGRST204' || saveError.code === '42703')) {
+    const { critical_findings: _omitted, ...withoutFindings } = row;
+    void _omitted;
+    ({ data: saved, error: saveError } = await save(withoutFindings));
+  }
 
   if (saveError) {
     return Response.json({ error: 'Could not save the scorecard.' }, { status: 500 });

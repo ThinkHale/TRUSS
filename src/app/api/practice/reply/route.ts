@@ -14,6 +14,7 @@ import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
 import { resolveScenario } from '@/lib/truss/resolveScenario';
 import { MAX_SESSION_TURNS } from '@/lib/truss/practice';
+import { recordTokens, type ProviderUsage } from '@/lib/ai/usage';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: 'That practice session has ended.' }, { status: 409 });
   }
 
-  const scenario = await resolveScenario(supabase, session.orgId, practiceSession.scenario_id, {
+  const scenario = await resolveScenario(supabase, [session.orgId, session.parentOrgId], practiceSession.scenario_id, {
     customScenarioId: practiceSession.custom_scenario_id,
   });
   if (!scenario) return Response.json({ error: 'Scenario not found.' }, { status: 404 });
@@ -82,6 +83,8 @@ export async function POST(req: NextRequest) {
       file: audio,
       language: scenario.language,
     });
+    await recordTokens(supabase, session.orgId, 'transcription', MODELS.transcribe,
+      (transcription as { usage?: ProviderUsage }).usage);
     repText = transcription.text.trim();
   } else if (typeof typed === 'string' && typed.trim()) {
     repText = typed.trim().slice(0, 4000);
@@ -122,6 +125,7 @@ export async function POST(req: NextRequest) {
     ],
   });
 
+  await recordTokens(supabase, session.orgId, 'practice_reply', MODELS.coach, completion.usage);
   const characterText = completion.choices[0]?.message?.content?.trim() ?? '';
 
   await supabase.from('practice_turns').insert([
@@ -148,6 +152,10 @@ export async function POST(req: NextRequest) {
       response_format: 'mp3',
     });
     audioBase64 = Buffer.from(await speech.arrayBuffer()).toString('base64');
+    // Speech is billed on the text sent, so that is what is recorded.
+    await recordTokens(supabase, session.orgId, 'speech', MODELS.speech, {
+      input_tokens: Math.ceil(characterText.length / 4),
+    });
   } catch {
     // Text-only is a degraded but working experience; do not fail the turn.
   }

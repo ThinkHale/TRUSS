@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const scenario = await resolveScenario(supabase, session.orgId, scenarioId, { requirePublished: true });
+  const scenario = await resolveScenario(supabase, [session.orgId, session.parentOrgId], scenarioId, { requirePublished: true });
   if (!scenario) {
     return Response.json({ error: 'That scenario does not exist.' }, { status: 404 });
   }

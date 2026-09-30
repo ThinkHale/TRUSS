@@ -443,9 +443,21 @@ repeat into "summary" and "headline" rather than inventing new fields.
   ],
   "headline": "the one thing to work on",
   "outcome": "signed" | "next-step-set" | "no-commitment" | "lost",
-  "summary": "plain-language summary, critical violation first when there is one"
+  "summary": "plain-language summary, critical violation first when there is one",
+  "critical": [
+    { "code": "deductible" | "insurance_promise" | "unverified_claim" | "payment_only" | "scenario_critical" | "other",
+      "description": "one plain sentence naming the violation",
+      "evidence": "verbatim quote of what the rep said" }
+  ]
 }
 "score" is an integer 0 to 4. "wentWell" is an empty array when the score is 0.
+"critical" lists every finding marked CRITICAL above that actually occurred, one entry each,
+and is an empty array when there were none. Codes: deductible = waive/absorb/cover the
+deductible; insurance_promise = stated a coverage or approval outcome as fact;
+unverified_claim = unverified hazard, code, failure, or savings claim; payment_only = payment
+without cash price, total financed cost, or terms, or hidden exclusions or cancellation rights;
+scenario_critical = one of this scenario's listed critical failures. Never list a non-critical
+finding here, and never invent one: a manager's compliance report is built from this field.
 No markdown, no preamble.`;
 
   return { system, grounding };

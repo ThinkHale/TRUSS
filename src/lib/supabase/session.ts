@@ -30,7 +30,46 @@ export interface SessionContext {
   locale: 'en' | 'es';
   /** Operator of TRUSS itself. Gates the admin console entry point. */
   isPlatformAdmin: boolean;
+  /** 'portfolio' for a holding company; 'company' for an operating tenant. */
+  orgKind: 'company' | 'portfolio';
+  /** The portfolio this company belongs to, when it belongs to one. */
+  parentOrgId: string | null;
 }
+
+/** True for the roles that manage people: the team dashboard, cohorts, knowledge. */
+export function isManagerRole(role: SessionContext['role']): boolean {
+  return role === 'owner' || role === 'admin' || role === 'manager';
+}
+
+/** True for the roles that administer the company: roster, integrations, exports. */
+export function isAdminRole(role: SessionContext['role']): boolean {
+  return role === 'owner' || role === 'admin';
+}
+
+/**
+ * Whether this sign-in satisfies the company's SSO requirement.
+ *
+ * A company that signs in through its identity provider can mark its domain
+ * "SSO required" (org_domains, migration 0021). A password session for an
+ * address at that domain is then refused everywhere, because the whole point
+ * is that deprovisioning someone in the identity provider ends their access.
+ * Supabase stamps the authentication method into the token's `amr` claim;
+ * SAML sign-ins carry an `sso/saml` entry.
+ *
+ * Memoized per request; one small RPC, run alongside the session queries.
+ */
+export const ssoStatus = cache(async (): Promise<{ required: boolean; satisfied: boolean }> => {
+  const supabase = await supabaseServer();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims as { email?: string; amr?: { method?: string }[] } | undefined;
+  if (!claims?.email) return { required: false, satisfied: true };
+
+  const { data: required } = await supabase.rpc('sso_required_for', { p_email: claims.email });
+  if (!required) return { required: false, satisfied: true };
+
+  const viaSso = (claims.amr ?? []).some((entry) => entry.method?.startsWith('sso'));
+  return { required: true, satisfied: viaSso };
+});
 
 /**
  * Memoized for the life of one request. The app layout and the page inside it
@@ -54,19 +93,48 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
   // are keyed off the user alone, so they go out together rather than in
   // sequence — a rep belongs to one org in practice, so this stays small, and
   // the operator check costs no extra round trip.
-  const [{ data: profile }, { data: memberships }, { data: operator }] = await Promise.all([
-    supabase.from('profiles').select('active_org_id, locale').eq('id', user.id).single(),
+  const ORG_COLUMNS = 'id, name, plan, plan_override, override_expires_at, override_reason';
+  const query = (orgColumns: string) =>
     supabase
       .from('memberships')
-      .select(
-        'org_id, role, created_at, organizations(id, name, plan, plan_override, override_expires_at, override_reason)',
-      )
+      .select(`org_id, role, created_at, organizations(${orgColumns})` as 'org_id')
       .eq('user_id', user.id)
       // Oldest first, so the fallback below is deterministic rather than
       // whatever order the planner happened to return.
-      .order('created_at', { ascending: true }),
+      .order('created_at', { ascending: true })
+      .overrideTypes<{ org_id: string; role: string; created_at: string; organizations: unknown }[], { merge: false }>();
+
+  // kind and parent_org_id arrive with migration 0018. If this code reaches a
+  // database that has not had it yet, an undefined-column error must not read
+  // as "no memberships" — that sends every user to onboarding.
+  const loadMemberships = async () => {
+    const result = await query(`${ORG_COLUMNS}, kind, parent_org_id`);
+    return result.error?.code === '42703' ? query(ORG_COLUMNS) : result;
+  };
+
+  const [{ data: profile }, membershipResult, { data: operator }, sso] = await Promise.all([
+    supabase.from('profiles').select('active_org_id, locale').eq('id', user.id).single(),
+    loadMemberships(),
     supabase.from('platform_admins').select('user_id').eq('user_id', user.id).maybeSingle(),
+    ssoStatus(),
   ]);
+
+  // A password session for a domain that requires SSO is not a session. The
+  // sign-in page explains; onboarding sends them there rather than offering
+  // to build a company.
+  if (!sso.satisfied) return null;
+
+  let memberships = membershipResult.data;
+
+  // Nobody belongs to nothing if there is somewhere they were meant to land:
+  // an invitation that created their account, or their company's email
+  // domain. Both are checked in SQL against their own confirmed address, so
+  // this cannot place anyone somewhere they were not invited or entitled to be.
+  if (!memberships?.length) {
+    const { data: accepted } = await supabase.rpc('accept_invitations_for_new_account');
+    const joined = accepted ? null : (await supabase.rpc('join_by_email_domain')).data;
+    if (accepted || joined) memberships = (await loadMemberships()).data;
+  }
 
   // active_org_id is a pointer, not the source of truth — membership is. The
   // pointer gets blanked whenever the org it named is deleted, because the
@@ -98,6 +166,8 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     plan_override: PlanId | null;
     override_expires_at: string | null;
     override_reason: string | null;
+    kind: 'company' | 'portfolio' | null;
+    parent_org_id: string | null;
   };
 
   const planState = {
@@ -119,6 +189,9 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
     overrideReason: org.override_reason,
     locale: (profile?.locale as 'en' | 'es') ?? 'en',
     isPlatformAdmin: Boolean(operator),
+    // Absent until migration 0018 is applied; a flat tenant is a company.
+    orgKind: org.kind ?? 'company',
+    parentOrgId: org.parent_org_id ?? null,
   };
 });
 
@@ -129,17 +202,40 @@ export const getSessionContext = cache(async (): Promise<SessionContext | null> 
 export async function loadOrgContext(session: SessionContext): Promise<OrgContext> {
   const supabase = await supabaseServer();
 
-  const { data: settings } = await supabase
-    .from('org_settings')
-    .select('trades, service_area, playbook_rules')
-    .eq('org_id', session.orgId)
-    .maybeSingle();
+  // A company in a portfolio is held to the portfolio's rules as well as its
+  // own. RLS lets its members read the portfolio's settings (0018); the rules
+  // are labelled with where they came from, so a rep can tell the house
+  // standard from their own company's.
+  const [{ data: settings }, parent] = await Promise.all([
+    supabase
+      .from('org_settings')
+      .select('trades, service_area, playbook_rules')
+      .eq('org_id', session.orgId)
+      .maybeSingle(),
+    session.parentOrgId
+      ? Promise.all([
+          supabase.rpc('org_parent_summary', { p_org: session.orgId }).maybeSingle<{ name: string }>(),
+          supabase
+            .from('org_settings')
+            .select('playbook_rules')
+            .eq('org_id', session.parentOrgId)
+            .maybeSingle(),
+        ])
+      : Promise.resolve(null),
+  ]);
+
+  const inherited = parent
+    ? (parent[1].data?.playbook_rules ?? []).map(
+        (rule: string) => `${rule} (${parent[0].data?.name ?? 'Portfolio'} standard)`,
+      )
+    : [];
+  const rules = [...inherited, ...(settings?.playbook_rules ?? [])];
 
   return {
     companyName: session.orgName,
     trades: settings?.trades ?? undefined,
     serviceArea: settings?.service_area ?? undefined,
-    playbookRules: settings?.playbook_rules ?? undefined,
+    playbookRules: rules.length ? rules : undefined,
     locale: session.locale,
   };
 }

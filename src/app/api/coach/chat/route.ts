@@ -15,6 +15,7 @@ import { citationLabel } from '@/lib/truss/knowledge';
 import { accountRecordText } from '@/lib/truss/accounts';
 import { getSessionContext, loadOrgContext } from '@/lib/supabase/session';
 import { supabaseServer } from '@/lib/supabase/server';
+import { recordTokens, type ProviderUsage } from '@/lib/ai/usage';
 import { STAGE_IDS, type StageId } from '@/lib/truss/methodology';
 
 export const runtime = 'nodejs';
@@ -133,6 +134,8 @@ export async function POST(req: NextRequest) {
   const stream = await openai().chat.completions.create({
     model: MODELS.coach,
     stream: true,
+    // The final chunk then carries token counts, which is what the answer cost.
+    stream_options: { include_usage: true },
     temperature: 0.6,
     max_tokens: 1600,
     messages: [
@@ -153,6 +156,7 @@ export async function POST(req: NextRequest) {
   ];
   const encoder = new TextEncoder();
   let full = '';
+  let usage: ProviderUsage | null = null;
 
   const body = new ReadableStream({
     async start(controller) {
@@ -166,6 +170,7 @@ export async function POST(req: NextRequest) {
 
       try {
         for await (const chunk of stream) {
+          if (chunk.usage) usage = chunk.usage;
           const delta = chunk.choices[0]?.delta?.content;
           if (!delta) continue;
           full += delta;
@@ -199,6 +204,7 @@ export async function POST(req: NextRequest) {
           model_name: MODELS.coach,
         });
       }
+      await recordTokens(supabase, session.orgId, 'coach', MODELS.coach, usage);
 
       controller.enqueue(encoder.encode(`${JSON.stringify({ type: 'done' })}\n`));
       controller.close();
